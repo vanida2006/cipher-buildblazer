@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CIPHER — Student Association of Computer Science &amp; Engineering, SJEC</title>
+  <meta name="description" content="CIPHER is the student association of the Department of Computer Science & Engineering at SJEC.">
+  <meta name="theme-color" content="#020a05">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="locked">
+
+  <!-- Intro -->
+  <div id="intro" class="intro" role="dialog" aria-label="Intro animation">
+    <canvas id="intro-rain"></canvas>
+    <div class="intro__word" id="intro-word" aria-hidden="true"></div>
+    <button class="intro__skip" id="intro-skip" type="button">[ SKIP &gt; ]</button>
+  </div>
+
+  <!-- Background layers -->
+  <canvas id="waves" class="bg-waves" aria-hidden="true"></canvas>
+  <div id="cursor" class="cursor" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a href="#home" class="nav__logo" aria-label="CIPHER home"><img src="img/logo.svg" alt="CIPHER logo" width="84" height="56"></a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#leadership">Leadership</a>
+      <a href="#events">Events</a>
+      <a href="#join">Join</a>
+    </nav>
+    <button class="btn btn--ghost btn--sm" data-open-join type="button">Join CIPHER</button>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="home" class="hero">
+      <canvas id="hero-dots" class="hero__dots" aria-hidden="true"></canvas>
+      <h1 class="hero__title glow">Student Association of Computer Science &amp; Engineering</h1>
+      <p class="hero__sub">Bridging academic knowledge and practical application — a community of aspiring professionals in computing.</p>
+      <div class="hero__cta">
+        <button class="btn btn--solid" data-open-join type="button">Join CIPHER →</button>
+        <a class="btn btn--ghost" href="#events">Explore events</a>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section about">
+      <div class="about__text">
+        <p class="tag">// about</p>
+        <h2 class="glow">Who we are</h2>
+        <p><strong>CIPHER</strong> is the student association of the Department of Computer Science &amp; Engineering. It serves as a platform for students to nurture their technical and interpersonal skills through innovative and collaborative activities. The association strives to bridge the gap between academic knowledge and practical application, fostering a community of aspiring professionals dedicated to excellence in computing.</p>
+      </div>
+      <div class="about__collage" aria-hidden="true">
+        <div class="tile t1"></div><div class="tile t2"></div><div class="tile t3"></div>
+        <div class="tile t4"></div><div class="tile t5"></div>
+        <span class="about__word">CIPHER</span>
+      </div>
+    </section>
+
+    <!-- PILLARS -->
+    <section class="section pillars" aria-label="What we do">
+      <article class="pillar"><span class="pillar__icon">&lt;/&gt;</span><h3>Technical Skill Building</h3><p>Hands-on workshops, coding sessions, and tech talks that turn theory into working software.</p></article>
+      <article class="pillar"><span class="pillar__icon">♛</span><h3>Leadership &amp; Governance</h3><p>Annual elections for President, Secretary, and office bearers — guided by the HOD and Faculty Coordinator.</p></article>
+      <article class="pillar"><span class="pillar__icon">⚇</span><h3>Events &amp; Collaboration</h3><p>Hackathons, seminars, and department-level competitions that bring students together.</p></article>
+      <article class="pillar"><span class="pillar__icon">➚</span><h3>Industry Readiness</h3><p>Bridging classroom learning with real-world application to prepare students for the field.</p></article>
+    </section>
+
+    <!-- LEADERSHIP -->
+    <section id="leadership" class="section">
+      <p class="tag">// governance</p>
+      <h2 class="glow">Leadership Structure</h2>
+      <div class="carousel" id="leaders" aria-live="polite"></div>
+    </section>
+
+    <!-- EVENTS -->
+    <section id="events" class="section">
+      <p class="tag">// activities</p>
+      <h2 class="glow">Events &amp; Workshops</h2>
+      <div class="cards" id="event-cards"></div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section class="section">
+      <p class="tag">// archive</p>
+      <h2 class="glow">Activities</h2>
+      <p class="lead">Hands-on workshops, industrial visits, and technical sessions run by the Cipher Association — spanning AI, blockchain, research tooling, and career prep.</p>
+      <ol class="archive" id="archive"></ol>
+    </section>
+
+    <!-- JOIN -->
+    <section id="join" class="section join">
+      <p class="tag">// access club</p>
+      <h2 class="glow">Join the Team</h2>
+      <p class="lead">Whether you want to build, lead, or simply learn — CIPHER is where CSE students turn curiosity into capability. Join the community and help shape what comes next.</p>
+      <div class="hero__cta hero__cta--center">
+        <button class="btn btn--solid" data-open-join type="button">Join →</button>
+        <a class="btn btn--ghost" href="#home">Back to top</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div><strong class="footer__brand">CIPHER</strong><p>Student Association · Computer Science &amp; Engineering</p></div>
+    <div class="footer__social">
+      <a href="mailto:cipher@sjec.ac.in" aria-label="Email">✉</a>
+      <a href="https://linkedin.com" aria-label="LinkedIn" rel="noopener">in</a>
+      <a href="https://github.com" aria-label="GitHub" rel="noopener">⌥</a>
+      <a href="https://instagram.com" aria-label="Instagram" rel="noopener">◎</a>
+    </div>
+    <p class="footer__copy">&gt; © 2026 CIPHER SJEC.</p>
+  </footer>
+
+  <!-- Event modal -->
+  <dialog id="event-modal" class="modal" aria-labelledby="em-title">
+    <button class="modal__close" data-close type="button" aria-label="Close">✕</button>
+    <div class="modal__grid">
+      <div>
+        <p class="tag" id="em-tag"></p>
+        <h3 id="em-title"></h3>
+        <p class="meta" id="em-meta"></p>
+        <div id="em-body"></div>
+      </div>
+      <div class="gallery">
+        <div class="gallery__frame" id="em-frame"></div>
+        <div class="gallery__nav">
+          <button type="button" id="em-prev" aria-label="Previous photo">←</button>
+          <span id="em-count">01 / 01</span>
+          <button type="button" id="em-next" aria-label="Next photo">→</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Join modal -->
+  <dialog id="join-modal" class="modal modal--form" aria-labelledby="jm-title">
+    <button class="modal__close" data-close type="button" aria-label="Close">✕</button>
+    <p class="tag">// access club</p>
+    <h3 id="jm-title">Join CIPHER</h3>
+    <form id="join-form" novalidate>
+      <label>Full name<input name="name" required minlength="2" maxlength="80" autocomplete="name"></label>
+      <label>College email<input name="email" type="email" required autocomplete="email"></label>
+      <div class="row">
+        <label>USN<input name="usn" maxlength="20"></label>
+        <label>Year
+          <select name="year"><option value="">Select</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </label>
+      </div>
+      <label>Interested in
+        <select name="interest"><option value="">Select</option><option>Web</option><option>AI/ML</option><option>Cybersecurity</option><option>Blockchain</option><option>Design</option><option>Events</option><option>Other</option></select>
+      </label>
+      <label>Anything you'd like to tell us?<textarea name="message" rows="3" maxlength="500"></textarea></label>
+      <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-status" id="join-status" role="status"></p>
+      <button class="btn btn--solid" type="submit" id="join-submit">Send application</button>
+    </form>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
