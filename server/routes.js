@@ -55,7 +55,7 @@ api.get('/leadership', (_req, res) => {
 });
 
 api.get('/events', (req, res) => {
-  const rows = db.prepare('SELECT * FROM events ORDER BY event_date DESC').all();
+  const rows = db.prepare('SELECT * FROM events ORDER BY id ASC').all();
   res.json(rows.map(parseEvent));
 });
 

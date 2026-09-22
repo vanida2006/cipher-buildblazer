@@ -61,10 +61,9 @@
         <h2 class="glow">Who we are</h2>
         <p><strong>CIPHER</strong> is the student association of the Department of Computer Science &amp; Engineering. It serves as a platform for students to nurture their technical and interpersonal skills through innovative and collaborative activities. The association strives to bridge the gap between academic knowledge and practical application, fostering a community of aspiring professionals dedicated to excellence in computing.</p>
       </div>
-      <div class="about__collage" aria-hidden="true">
-        <div class="tile t1"></div><div class="tile t2"></div><div class="tile t3"></div>
-        <div class="tile t4"></div><div class="tile t5"></div>
-        <span class="about__word">CIPHER</span>
+      <div class="about__collage" id="about-collage" aria-label="CIPHER activities collage">
+        <div class="about__canvas" id="about-canvas" aria-hidden="true"></div>
+        <span class="about__word" id="about-word">CIPHER</span>
       </div>
     </section>
 
@@ -87,7 +86,6 @@
     <section id="events" class="section">
       <p class="tag">// activities</p>
       <h2 class="glow">Events &amp; Workshops</h2>
-      <div class="chips" id="event-chips" role="group" aria-label="Filter events by category"></div>
       <div class="cards" id="event-cards"></div>
     </section>
 
@@ -128,19 +126,55 @@
   <dialog id="event-modal" class="modal" aria-labelledby="em-title">
     <button class="modal__close" data-close type="button" aria-label="Close">✕</button>
     <div class="modal__grid">
-      <div>
-        <p class="tag" id="em-tag"></p>
+      <div class="modal__info">
+        <p class="tag" id="em-tag">CIPHER // ACTIVITIES</p>
         <h3 id="em-title"></h3>
         <p class="meta" id="em-meta"></p>
         <div id="em-body"></div>
       </div>
       <div class="gallery">
-        <div class="gallery__frame" id="em-frame"></div>
-        <div class="gallery__nav">
-          <button type="button" id="em-prev" aria-label="Previous photo">←</button>
-          <span id="em-count">01 / 01</span>
-          <button type="button" id="em-next" aria-label="Next photo">→</button>
+        <div class="gallery__card" id="em-card" tabindex="0" role="button" aria-label="Next slide">
+          <div class="gallery__hud">
+            <span id="em-hud-tag">PROMPT_OPS</span>
+            <span id="em-hud-count">01 / 05</span>
+          </div>
+          <div class="gallery__frame" id="em-frame">
+            <img id="em-slide-img" class="gallery__slide-img" src="" alt="Event photo" />
+          </div>
+          <div class="gallery__bottom-overlay">
+            <div class="gallery__date-badge" id="em-card-date">25 MAR 2026</div>
+            <h4 class="gallery__card-title" id="em-card-title">PROMPT OPS-2K26</h4>
+            <p class="gallery__card-sub" id="em-card-sub">AgentBlazer Club × Cipher</p>
+          </div>
         </div>
+        <div class="gallery__nav">
+          <button type="button" id="em-prev" class="gallery__nav-btn" aria-label="Previous photo">←</button>
+          <div class="gallery__nav-center">
+            <span id="em-count" class="gallery__counter">01 / 05</span>
+            <span class="gallery__hint-text">SWIPE TO EXPLORE →</span>
+          </div>
+          <button type="button" id="em-next" class="gallery__nav-btn" aria-label="Next photo">→</button>
+        </div>
+        <div class="gallery__dots" id="em-dots"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Leader profile popup modal -->
+  <dialog id="leader-modal" class="modal modal--leader" aria-labelledby="lm-name">
+    <button class="modal__close" data-close type="button" aria-label="Close">✕</button>
+    <div class="leader-popup">
+      <div class="leader-popup__visual">
+        <canvas class="leader-popup__matrix" id="lm-matrix"></canvas>
+        <div class="leader-popup__photo-wrap">
+          <img id="lm-photo" src="" alt="Leader photo" />
+          <span class="leader-popup__initials" id="lm-initials"></span>
+        </div>
+      </div>
+      <div class="leader-popup__details">
+        <p class="leader-popup__role" id="lm-role"></p>
+        <h3 class="leader-popup__name" id="lm-name"></h3>
+        <div class="leader-popup__links" id="lm-links"></div>
       </div>
     </div>
   </dialog>
