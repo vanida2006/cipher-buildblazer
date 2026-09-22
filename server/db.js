@@ -1,13 +1,9 @@
-const Database = require('better-sqlite3');
-const fs = require('fs');
-const path = require('path');
+// Built-in SQLite (Node >= 22.13): no native compile step, works on Windows out of the box.
+const { DatabaseSync } = require('node:sqlite');
+const { dbPath } = require('./paths');
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'cipher.db');
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+const db = new DatabaseSync(dbPath);
+db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS members (

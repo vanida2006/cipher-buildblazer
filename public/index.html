@@ -6,7 +6,11 @@
   <title>CIPHER — Student Association of Computer Science &amp; Engineering, SJEC</title>
   <meta name="description" content="CIPHER is the student association of the Department of Computer Science & Engineering at SJEC.">
   <meta name="theme-color" content="#020a05">
-  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <meta property="og:title" content="CIPHER — CSE Student Association, SJEC">
+  <meta property="og:description" content="Workshops, hackathons and industry-ready skills by the students of Computer Science & Engineering.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="img/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -26,8 +30,9 @@
   <div id="cursor" class="cursor" aria-hidden="true"></div>
 
   <header class="nav" id="nav">
-    <a href="#home" class="nav__logo" aria-label="CIPHER home"><img src="img/logo.svg" alt="CIPHER logo" width="84" height="56"></a>
-    <nav class="nav__links" aria-label="Primary">
+    <a href="#home" class="nav__logo" aria-label="CIPHER home"><img src="img/logo.jpg" alt="CIPHER logo" width="76" height="52"></a>
+    <button class="nav__toggle" id="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span></span></button>
+    <nav class="nav__links" id="nav-links" aria-label="Primary">
       <a href="#home">Home</a>
       <a href="#about">About</a>
       <a href="#leadership">Leadership</a>
@@ -82,6 +87,7 @@
     <section id="events" class="section">
       <p class="tag">// activities</p>
       <h2 class="glow">Events &amp; Workshops</h2>
+      <div class="chips" id="event-chips" role="group" aria-label="Filter events by category"></div>
       <div class="cards" id="event-cards"></div>
     </section>
 
@@ -90,7 +96,9 @@
       <p class="tag">// archive</p>
       <h2 class="glow">Activities</h2>
       <p class="lead">Hands-on workshops, industrial visits, and technical sessions run by the Cipher Association — spanning AI, blockchain, research tooling, and career prep.</p>
+      <label class="search"><span class="sr">Search activities</span><input id="archive-search" type="search" placeholder="Search activities…" autocomplete="off"></label>
       <ol class="archive" id="archive"></ol>
+      <p class="empty-msg" id="archive-empty" hidden>No activities match your search.</p>
     </section>
 
     <!-- JOIN -->

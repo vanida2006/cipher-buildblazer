@@ -1,7 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 const { z } = require('zod');
+const { uploadDir } = require('./paths');
 const db = require('./db');
 const { sign, requireAdmin } = require('./auth');
 
@@ -31,6 +36,17 @@ const slugify = (s) =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+/* Optional: post new applications to a Discord/Slack-style webhook (set JOIN_WEBHOOK_URL). */
+function notifyWebhook(text) {
+  const url = process.env.JOIN_WEBHOOK_URL;
+  if (!url) return;
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: text, text, allowed_mentions: { parse: [] } }),
+  }).catch((e) => console.warn('Webhook failed:', e.message));
+}
+
 /* ---------- public: read ---------- */
 api.get('/health', (_req, res) => res.json({ ok: true }));
 
@@ -47,6 +63,11 @@ api.get('/events/:slug', (req, res) => {
   const row = db.prepare('SELECT * FROM events WHERE slug = ?').get(req.params.slug);
   if (!row) return res.status(404).json({ error: 'Event not found' });
   res.json(parseEvent(row));
+});
+
+api.get('/stats', (_req, res) => {
+  const n = (t) => db.prepare(`SELECT COUNT(*) AS c FROM ${t}`).get().c;
+  res.json({ events: n('events'), activities: n('activities'), leaders: n('members') });
 });
 
 api.get('/activities', (_req, res) => {
@@ -85,6 +106,7 @@ api.post('/join', joinLimiter, validate(joinSchema), (req, res) => {
     'INSERT INTO join_requests (name,email,usn,year,interest,message) VALUES (?,?,?,?,?,?)'
   ).run(name, email, usn, year ?? null, interest ?? null, message);
 
+  notifyWebhook(`New CIPHER application: ${name} (${email})${year ? `, year ${year}` : ''}${interest ? `, interested in ${interest}` : ''}`);
   res.status(201).json({ ok: true, message: 'Application received. Welcome to CIPHER.' });
 });
 
@@ -191,10 +213,38 @@ admin.post('/activities', validate(activitySchema), (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid });
 });
 
+admin.put('/activities/:id', validate(activitySchema), (req, res) => {
+  const a = req.body;
+  const info = db.prepare('UPDATE activities SET title=?, url=?, sort_order=? WHERE id=?')
+    .run(a.title, a.url || null, a.sort_order, req.params.id);
+  if (!info.changes) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
 admin.delete('/activities/:id', (req, res) => {
   const info = db.prepare('DELETE FROM activities WHERE id=?').run(req.params.id);
   if (!info.changes) return res.status(404).json({ error: 'Not found' });
   res.status(204).end();
+});
+
+/* ---------- admin: image upload ---------- */
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024, files: 1 } });
+
+// Identify the real image type from magic bytes; never trust the client's filename or MIME type.
+function sniffImage(b) {
+  if (b.length > 12 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpg';
+  if (b.length > 12 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
+  if (b.length > 12 && b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP') return 'webp';
+  return null;
+}
+
+admin.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file received' });
+  const ext = sniffImage(req.file.buffer);
+  if (!ext) return res.status(400).json({ error: 'Only JPG, PNG or WebP images are allowed' });
+  const name = `${crypto.randomBytes(12).toString('hex')}.${ext}`;
+  fs.writeFileSync(path.join(uploadDir, name), req.file.buffer);
+  res.status(201).json({ url: `/uploads/${name}` });
 });
 
 /* ---------- admin: join requests ---------- */

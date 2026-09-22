@@ -218,25 +218,59 @@
   $('#em-prev').addEventListener('click', () => { if (gal.length) { gi = (gi - 1 + gal.length) % gal.length; showSlide(); } });
   $('#em-next').addEventListener('click', () => { if (gal.length) { gi = (gi + 1) % gal.length; showSlide(); } });
 
-  async function loadEvents() {
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') $('#em-prev').click();
+    if (e.key === 'ArrowRight') $('#em-next').click();
+  });
+  let touchX = null;
+  const frame = $('#em-frame');
+  frame.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+  frame.addEventListener('touchend', (e) => {
+    if (touchX == null) return;
+    const dx = e.changedTouches[0].clientX - touchX; touchX = null;
+    if (Math.abs(dx) > 40) $(dx < 0 ? '#em-next' : '#em-prev').click();
+  });
+
+  let allEvents = [], activeCat = 'All';
+  function renderEvents() {
     const box = $('#event-cards');
+    const list = allEvents.filter((e) => activeCat === 'All' || e.category === activeCat);
+    box.replaceChildren(...list.map((ev) => {
+      const cover = ev.gallery[0]?.src;
+      const card = h('button', { class: 'card', type: 'button' },
+        cover && Object.assign(h('span', { class: 'card__img', role: 'img', 'aria-label': ev.title }), {}),
+        h('div', { class: 'card__top' }, h('span', { text: ev.category }), h('span', { class: 'card__date', text: fmtDate(ev.event_date) })),
+        h('h3', { text: ev.title }), h('p', { text: ev.summary }), h('span', { class: 'card__more', text: 'VIEW DETAILS ↗' }));
+      if (cover) card.querySelector('.card__img').style.backgroundImage = `url("${encodeURI(cover)}")`;
+      card.addEventListener('click', () => openEvent(ev));
+      return card;
+    }));
+    const cats = ['All', ...new Set(allEvents.map((e) => e.category))];
+    $('#event-chips').replaceChildren(...(cats.length > 2 ? cats.map((c) => {
+      const b = h('button', { class: 'chip', type: 'button', 'aria-pressed': String(c === activeCat), text: c });
+      b.addEventListener('click', () => { activeCat = c; renderEvents(); });
+      return b;
+    }) : []));
+  }
+
+  async function loadEvents() {
     try {
-      const list = await api('/events');
-      box.replaceChildren(...list.map((ev) => {
-        const card = h('button', { class: 'card', type: 'button' },
-          h('div', { class: 'card__top' }, h('span', { text: ev.category }), h('span', { class: 'card__date', text: fmtDate(ev.event_date) })),
-          h('h3', { text: ev.title }), h('p', { text: ev.summary }), h('span', { class: 'card__more', text: 'VIEW GALLERY ↗' }));
-        card.addEventListener('click', () => openEvent(ev));
-        return card;
-      }));
-    } catch { box.replaceChildren(h('p', { class: 'err-msg', text: 'Could not load events. Refresh to try again.' })); }
+      allEvents = await api('/events');
+      renderEvents();
+    } catch { $('#event-cards').replaceChildren(h('p', { class: 'err-msg', text: 'Could not load events. Refresh to try again.' })); }
   }
 
   async function loadArchive() {
-    const ol = $('#archive');
+    const ol = $('#archive'), empty = $('#archive-empty'), input = $('#archive-search');
     try {
       const list = await api('/activities');
-      ol.replaceChildren(...list.map((a) => h('li', {}, a.url ? h('a', { href: a.url, rel: 'noopener', text: a.title }) : a.title)));
+      const draw = () => {
+        const q = input.value.trim().toLowerCase();
+        const shown = list.filter((a) => a.title.toLowerCase().includes(q));
+        ol.replaceChildren(...shown.map((a) => h('li', {}, a.url ? h('a', { href: a.url, rel: 'noopener', text: a.title }) : a.title)));
+        empty.hidden = shown.length > 0;
+      };
+      input.addEventListener('input', draw); draw();
     } catch { ol.replaceChildren(h('li', { text: 'Could not load activities.' })); }
   }
 
@@ -264,6 +298,13 @@
       status.textContent = err.data?.details?.map((d) => `${d.field}: ${d.message}`).join(' · ') || err.message;
     } finally { btn.disabled = false; }
   });
+
+  /* ---------------- mobile menu ---------------- */
+  const toggle = $('#nav-toggle'), navLinks = $('#nav-links');
+  const setMenu = (open) => { toggle.setAttribute('aria-expanded', String(open)); navLinks.classList.toggle('open', open); };
+  toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'));
+  navLinks.addEventListener('click', (e) => e.target.closest('a') && setMenu(false));
+  addEventListener('keydown', (e) => e.key === 'Escape' && setMenu(false));
 
   /* ---------------- nav highlight ---------------- */
   const links = $$('.nav__links a');
