@@ -35,6 +35,13 @@ async function hidden(question){
   if(password!==confirm) throw new Error('Passwords do not match.');
   const hash=bcrypt.hashSync(password,12);
   const existing=db.prepare('SELECT id FROM admins WHERE email=? COLLATE NOCASE').get(email);
-  if(existing){db.prepare("UPDATE admins SET name=?,role=?,password_hash=?,status='ACTIVE',session_version=session_version+1,updated_at=datetime('now') WHERE id=?").run(name,role,hash,existing.id);console.log('Admin updated:',email);}
-  else {db.prepare("INSERT INTO admins(name,email,password_hash,role,status) VALUES(?,?,?,?,'ACTIVE')").run(name,email,hash,role);console.log('Admin created:',email);}
+  if(existing){
+    db.prepare("UPDATE admins SET name=?,email=?,username=COALESCE(NULLIF(username,''),?),role=?,password_hash=?,status='ACTIVE',session_version=session_version+1,updated_at=datetime('now') WHERE id=?")
+      .run(name,email,email,role,hash,existing.id);
+    console.log('Admin updated:',email);
+  } else {
+    db.prepare("INSERT INTO admins(name,email,username,password_hash,role,status) VALUES(?,?,?,?,?,'ACTIVE')")
+      .run(name,email,email,hash,role);
+    console.log('Admin created:',email);
+  }
 })().catch(e=>{console.error(e.message);process.exit(1);});
