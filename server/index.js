@@ -17,8 +17,13 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
   originAgentCluster: false,
 }));
-app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true }));
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : false, credentials: true }));
 app.use(express.json({ limit: '100kb' }));
+
+// Private management portal is served separately from the public site.
+app.get(['/manage', '/manage/', '/manage/login', '/manage/dashboard', '/manage/events', '/manage/activities', '/manage/registrations', '/manage/team', '/manage/content', '/manage/gallery', '/manage/logs', '/manage/settings', '/manage/admins'], (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'manage', 'index.html'));
+});
 
 app.use('/api', api);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
