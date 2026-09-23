@@ -77,40 +77,43 @@ api.get('/activities', (_req, res) => {
 api.get('/admins', (_req, res) => {
   res.json([
     {
-      id: 'carol',
-      username: 'carol',
-      name: 'Carol Vanida Quadras',
-      dept: 'CSE',
-      departmentFull: 'Department of Computer Science & Engineering',
-      role: 'Lead Administrator & Coordinator',
-      badge: 'ADMIN ID // 01',
-      accessLevel: 'Level 5 Full Access',
-      image: '/img/admin/carol-quadras.jpg',
-      bio: 'Leading CIPHER administrative operations, department integration, and technical governance.'
+      id: 'aarav',
+      username: 'aarav',
+      name: 'Aarav Fernandes',
+      role: 'Super Admin',
+      image: '/img/admin/aarav-fernandes.jpg',
+      bio: 'Oversees overall operations, manages platform infrastructure and ensures everything runs smoothly.',
+      social: {
+        linkedin: 'https://linkedin.com',
+        instagram: 'https://instagram.com',
+        email: 'mailto:aarav.admin@sjec.ac.in'
+      }
     },
     {
-      id: 'ashna',
-      username: 'ashna',
-      name: 'Ashna Snehal Menezes',
-      dept: 'CSE',
-      departmentFull: 'Department of Computer Science & Engineering',
-      role: 'Operations Administrator & Coordinator',
-      badge: 'ADMIN ID // 02',
-      accessLevel: 'Level 4 Operations',
-      image: '/img/admin/ashna-menezes.jpg',
-      bio: 'Managing event planning, association workshops, logistics, and student coordination.'
+      id: 'sneha',
+      username: 'sneha',
+      name: 'Sneha D’Souza',
+      role: 'Content & Events Admin',
+      image: '/img/admin/sneha-dsouza.jpg',
+      bio: 'Handles activity management, registrations and content updates across the platform.',
+      social: {
+        linkedin: 'https://linkedin.com',
+        instagram: 'https://instagram.com',
+        email: 'mailto:sneha.admin@sjec.ac.in'
+      }
     },
     {
-      id: 'ashlin',
-      username: 'ashlin',
-      name: 'Ashlin Mischel Fernandes',
-      dept: 'CSE',
-      departmentFull: 'Department of Computer Science & Engineering',
-      role: 'Technical Administrator & Coordinator',
-      badge: 'ADMIN ID // 03',
-      accessLevel: 'Level 4 Technical',
-      image: '/img/admin/ashlin-fernandes.jpg',
-      bio: 'Overseeing technical challenges, platform development, and hackathon execution.'
+      id: 'rohan',
+      username: 'rohan',
+      name: 'Rohan Karkera',
+      role: 'Technical Admin',
+      image: '/img/admin/rohan-karkera.jpg',
+      bio: 'Maintains the technical backend, database and ensures a seamless user experience.',
+      social: {
+        linkedin: 'https://linkedin.com',
+        instagram: 'https://instagram.com',
+        email: 'mailto:rohan.admin@sjec.ac.in'
+      }
     }
   ]);
 });

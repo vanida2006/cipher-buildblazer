@@ -129,59 +129,309 @@
     setTimeout(close, 3500);
   }
 
-  /* ---------------- background contour waves ---------------- */
+  /* ---------------- creative dynamic motion background ---------------- */
   function startWaves() {
-    const c = $('#waves');
+    const c = $("#waves");
     if (!c) return;
-    const ctx = c.getContext('2d');
+    const ctx = c.getContext("2d");
     if (!ctx) return;
+
     let w = 0, hgt = 0, t = 0, rafId = null, running = true;
+    let farParticles = [];
+    let nearParticles = [];
+    let packets = [];
+    let validLinks = [];
+    let smoothMouse = { x: -999, y: -999 };
+
     const resize = () => {
       w = c.width = Math.max(innerWidth || 800, 320);
       hgt = c.height = Math.max(innerHeight || 600, 320);
+      initElements();
+      if (reduceMotion) drawStatic();
     };
+
+    function initElements() {
+      // 1. Far depth particle layer (smaller, slower, lower opacity)
+      const farCount = Math.min(Math.max(Math.floor((w * hgt) / 38000), 20), 45);
+      farParticles = [];
+      for (let i = 0; i < farCount; i++) {
+        farParticles.push({
+          x: Math.random() * w,
+          y: Math.random() * hgt,
+          vx: (Math.random() - 0.5) * 0.18,
+          vy: (Math.random() - 0.5) * 0.18,
+          radius: Math.random() * 0.6 + 0.7,
+          alpha: Math.random() * 0.15 + 0.12
+        });
+      }
+
+      // 2. Near network constellation nodes (crisp, subtle pulse, linked)
+      const nearCount = Math.min(Math.max(Math.floor((w * hgt) / 28000), 24), 55);
+      nearParticles = [];
+      for (let i = 0; i < nearCount; i++) {
+        nearParticles.push({
+          x: Math.random() * w,
+          y: Math.random() * hgt,
+          vx: (Math.random() - 0.5) * 0.32,
+          vy: (Math.random() - 0.5) * 0.32,
+          radius: Math.random() * 0.8 + 1.1,
+          pulse: Math.random() * Math.PI * 2,
+          pulseSpeed: 0.015 + Math.random() * 0.02,
+          baseAlpha: Math.random() * 0.28 + 0.28
+        });
+      }
+
+      packets = [];
+      validLinks = [];
+    }
+
     resize();
     let rtime;
-    addEventListener('resize', () => {
+    addEventListener("resize", () => {
       clearTimeout(rtime);
-      rtime = setTimeout(resize, 100);
+      rtime = setTimeout(resize, 120);
     }, { passive: true });
 
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       running = !document.hidden;
-      if (running) {
+      if (running && !reduceMotion) {
         if (!rafId) rafId = requestAnimationFrame(draw);
       } else {
         if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       }
     });
 
+    // Draw single static background if user prefers reduced motion
+    function drawStatic() {
+      ctx.clearRect(0, 0, w, hgt);
+      drawTopographicWaves(0);
+      drawNetworkNodes(0);
+    }
+
+    // LAYER 1: Very subtle animated grid that shifts slowly
+    function drawGrid(time) {
+      const gridSize = 64;
+      const shiftY = (time * 6) % gridSize;
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(0, 255, 102, 0.022)";
+      ctx.lineWidth = 0.5;
+
+      // Vertical lines
+      for (let x = 0; x <= w; x += gridSize) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, hgt);
+      }
+
+      // Horizontal lines with slow continuous vertical drift
+      for (let y = shiftY; y <= hgt; y += gridSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+
+      // Sparse subtle corner crosshairs
+      ctx.fillStyle = "rgba(0, 255, 102, 0.04)";
+      for (let x = gridSize; x < w; x += gridSize * 3) {
+        for (let y = shiftY + gridSize; y < hgt; y += gridSize * 3) {
+          ctx.fillRect(x - 2, y, 5, 1);
+          ctx.fillRect(x, y - 2, 1, 5);
+        }
+      }
+    }
+
+    // LAYER 2: Subtle animated flowing topographic/wave lines
+    function drawTopographicWaves(time) {
+      const waveCount = Math.min(Math.max(Math.floor(hgt / 140), 6), 9);
+      const waveSpacing = hgt / (waveCount + 1);
+
+      ctx.lineWidth = 0.9;
+      for (let i = 0; i < waveCount; i++) {
+        const base = (i + 1) * waveSpacing;
+        ctx.beginPath();
+
+        const step = Math.max(Math.floor(w / 36), 24);
+        for (let x = 0; x <= w + step; x += step) {
+          // Cursor magnetic deflection
+          const dx = x - smoothMouse.x;
+          const dy = base - smoothMouse.y;
+          const distSq = dx * dx + dy * dy;
+          const pull = distSq < 70000 ? Math.exp(-distSq / 42000) * 18 : 0;
+
+          // Harmonic compound sine contours (mimicking topographic elevation)
+          const y = base
+            + Math.sin(x * 0.0024 + time * 0.45 + i * 0.72) * 20
+            + Math.cos(x * 0.0048 - time * 0.32 + i * 0.44) * 11
+            - pull;
+
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+
+        // Soft, elegant emerald stroke with harmonic alpha
+        const lineAlpha = 0.038 + 0.02 * Math.sin(i * 0.9 + time * 0.5);
+        ctx.strokeStyle = "rgba(0, 255, 102, " + lineAlpha + ")";
+        ctx.stroke();
+      }
+    }
+
+    // LAYER 3: Multi-depth particles and network constellation
+    function drawNetworkNodes(time) {
+      validLinks = [];
+
+      // Far depth particles (slow drifting ambient stars)
+      ctx.fillStyle = "rgba(0, 255, 102, 0.16)";
+      for (let i = 0; i < farParticles.length; i++) {
+        const fp = farParticles[i];
+        if (!reduceMotion) {
+          fp.x += fp.vx;
+          fp.y += fp.vy;
+          if (fp.x < 0) fp.x = w;
+          else if (fp.x > w) fp.x = 0;
+          if (fp.y < 0) fp.y = hgt;
+          else if (fp.y > hgt) fp.y = 0;
+        }
+        ctx.beginPath();
+        ctx.arc(fp.x, fp.y, fp.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Near constellation nodes with dynamic distance connections
+      const maxDist = Math.min(w * 0.16, 150);
+      const maxDistSq = maxDist * maxDist;
+
+      for (let i = 0; i < nearParticles.length; i++) {
+        const p = nearParticles[i];
+
+        if (!reduceMotion) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.pulse += p.pulseSpeed;
+
+          // Wrap edges
+          if (p.x < -10) p.x = w + 10;
+          else if (p.x > w + 10) p.x = -10;
+          if (p.y < -10) p.y = hgt + 10;
+          else if (p.y > hgt + 10) p.y = -10;
+
+          // Cursor gentle magnetic nudge
+          const mdx = p.x - smoothMouse.x;
+          const mdy = p.y - smoothMouse.y;
+          const mDistSq = mdx * mdx + mdy * mdy;
+          if (mDistSq < 16000 && mDistSq > 1) {
+            const push = (1 - Math.sqrt(mDistSq) / 126) * 0.4;
+            p.x += (mdx / Math.sqrt(mDistSq)) * push;
+            p.y += (mdy / Math.sqrt(mDistSq)) * push;
+          }
+        }
+
+        // Inter-node connections
+        for (let j = i + 1; j < nearParticles.length; j++) {
+          const p2 = nearParticles[j];
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < maxDistSq) {
+            const dist = Math.sqrt(distSq);
+            const lineAlpha = (1 - dist / maxDist) * 0.16;
+
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = "rgba(0, 255, 102, " + lineAlpha + ")";
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            validLinks.push({ from: p, to: p2 });
+          }
+        }
+
+        // Draw node
+        const glow = Math.sin(p.pulse) * 0.3 + 0.7;
+        const currentAlpha = p.baseAlpha * glow;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 255, 102, " + currentAlpha + ")";
+        ctx.fill();
+      }
+
+      // Travelling data packets on active links
+      if (!reduceMotion) {
+        if (packets.length < 8 && validLinks.length > 0 && Math.random() < 0.05) {
+          const link = validLinks[Math.floor(Math.random() * validLinks.length)];
+          packets.push({
+            from: link.from,
+            to: link.to,
+            progress: 0,
+            speed: 0.012 + Math.random() * 0.016
+          });
+        }
+
+        for (let pIdx = packets.length - 1; pIdx >= 0; pIdx--) {
+          const pk = packets[pIdx];
+          pk.progress += pk.speed;
+
+          if (pk.progress >= 1) {
+            packets.splice(pIdx, 1);
+            continue;
+          }
+
+          const pkX = pk.from.x + (pk.to.x - pk.from.x) * pk.progress;
+          const pkY = pk.from.y + (pk.to.y - pk.from.y) * pk.progress;
+
+          ctx.beginPath();
+          ctx.arc(pkX, pkY, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.shadowColor = "#00ff66";
+          ctx.shadowBlur = 6;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+
+    // LAYER 4: Subtle cursor ambient glow
+    function drawCursorGlow() {
+      if (smoothMouse.x < 0 || smoothMouse.y < 0) return;
+      const rad = ctx.createRadialGradient(smoothMouse.x, smoothMouse.y, 0, smoothMouse.x, smoothMouse.y, 280);
+      rad.addColorStop(0, "rgba(0, 255, 102, 0.038)");
+      rad.addColorStop(0.5, "rgba(0, 255, 102, 0.012)");
+      rad.addColorStop(1, "transparent");
+      ctx.fillStyle = rad;
+      ctx.beginPath();
+      ctx.arc(smoothMouse.x, smoothMouse.y, 280, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     function draw() {
       if (!running) { rafId = null; return; }
       ctx.clearRect(0, 0, w, hgt);
-      ctx.lineWidth = 1;
-      const lines = 18, step = hgt / lines;
-      for (let i = 0; i < lines; i++) {
-        const base = i * step;
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 24) {
-          const dx = x - mouse.x, dy = base - mouse.y;
-          const pull = (Math.abs(dx) < 220 && Math.abs(dy) < 220)
-            ? Math.exp(-(dx * dx + dy * dy) / 36000) * 20
-            : 0;
-          const y = base
-            + Math.sin(x * 0.005 + t + i * 0.25) * 12
-            + Math.sin(x * 0.012 - t * 0.6 + i * 0.4) * 5
-            - pull;
-          x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+
+      // Smooth mouse coordinate lerping
+      if (mouse.x >= 0) {
+        if (smoothMouse.x < 0) {
+          smoothMouse.x = mouse.x;
+          smoothMouse.y = mouse.y;
+        } else {
+          smoothMouse.x += (mouse.x - smoothMouse.x) * 0.12;
+          smoothMouse.y += (mouse.y - smoothMouse.y) * 0.12;
         }
-        ctx.strokeStyle = `rgba(0,255,102,${0.09 + 0.07 * Math.sin(i * 0.5 + t)})`;
-        ctx.stroke();
       }
-      t += reduceMotion ? 0 : 0.008;
+
+      drawCursorGlow();
+      drawGrid(t);
+      drawTopographicWaves(t);
+      drawNetworkNodes(t);
+
+      t += 0.004;
       rafId = requestAnimationFrame(draw);
     }
-    rafId = requestAnimationFrame(draw);
+
+    if (reduceMotion) {
+      drawStatic();
+    } else {
+      rafId = requestAnimationFrame(draw);
+    }
   }
 
   /* ---------------- hero: dot-matrix "CIPHER" ---------------- */
@@ -331,10 +581,17 @@
   let gal = [], gi = 0;
   const showSlide = () => {
     const f = $('#em-frame');
-    if (!gal.length) { f.className = 'gallery__frame empty'; f.style.backgroundImage = ''; f.textContent = 'Photos coming soon'; $('#em-count').textContent = '00 / 00'; return; }
+    if (!gal.length) {
+      f.className = 'gallery__frame empty';
+      f.style.backgroundImage = '';
+      f.innerHTML = '<span style="color:var(--g-dim)">Photos coming soon</span>';
+      $('#em-count').textContent = '00 / 00';
+      return;
+    }
     const s = gal[gi];
-    f.className = 'gallery__frame'; f.textContent = s.caption || '';
+    f.className = 'gallery__frame';
     f.style.backgroundImage = `url("${encodeURI(s.src)}")`;
+    f.innerHTML = s.caption ? `<div class="gallery__caption">${s.caption}</div>` : '';
     $('#em-count').textContent = `${String(gi + 1).padStart(2, '0')} / ${String(gal.length).padStart(2, '0')}`;
   };
   function openEvent(ev) {
@@ -360,33 +617,201 @@
     if (Math.abs(dx) > 40) $(dx < 0 ? '#em-next' : '#em-prev').click();
   });
 
-  let allEvents = [], activeCat = 'All';
-  function renderEvents() {
-    const box = $('#event-cards');
-    const list = allEvents.filter((e) => activeCat === 'All' || e.category === activeCat);
-    box.replaceChildren(...list.map((ev) => {
-      const cover = ev.gallery[0]?.src;
-      const card = h('button', { class: 'card', type: 'button' },
-        cover && Object.assign(h('span', { class: 'card__img', role: 'img', 'aria-label': ev.title }), {}),
-        h('div', { class: 'card__top' }, h('span', { text: ev.category }), h('span', { class: 'card__date', text: fmtDate(ev.event_date) })),
-        h('h3', { text: ev.title }), h('p', { text: ev.summary }), h('span', { class: 'card__more', text: 'VIEW DETAILS ↗' }));
-      if (cover) card.querySelector('.card__img').style.backgroundImage = `url("${encodeURI(cover)}")`;
-      card.addEventListener('click', () => openEvent(ev));
-      return card;
-    }));
-    const cats = ['All', ...new Set(allEvents.map((e) => e.category))];
-    $('#event-chips').replaceChildren(...(cats.length > 2 ? cats.map((c) => {
-      const b = h('button', { class: 'chip', type: 'button', 'aria-pressed': String(c === activeCat), text: c });
-      b.addEventListener('click', () => { activeCat = c; renderEvents(); });
-      return b;
-    }) : []));
+  let allEvents = [];
+
+  function openEventBySlug(slug, cardElem) {
+    const ev = allEvents.find((e) => e.slug === slug);
+    if (ev) {
+      openEvent(ev);
+      return;
+    }
+    let gallery = [];
+    if (cardElem && cardElem.dataset.gallery) {
+      try { gallery = JSON.parse(cardElem.dataset.gallery); } catch {}
+    }
+    const title = cardElem?.querySelector('.card__title')?.textContent || 'Event Details';
+    const dateText = cardElem?.querySelector('.card__date-tag')?.textContent || '';
+    const venueText = cardElem?.querySelector('.card__venue')?.textContent || '';
+    const summaryText = cardElem?.querySelector('.card__summary')?.textContent || '';
+
+    $('#em-tag').textContent = `cipher // activities`;
+    $('#em-title').textContent = title;
+    $('#em-meta').textContent = [dateText, venueText].filter(Boolean).join(' · ');
+    $('#em-body').replaceChildren(h('p', { text: summaryText }));
+    gal = gallery;
+    gi = 0;
+    showSlide();
+    modal.showModal();
+  }
+
+  function initEventCards() {
+    const cards = $$('#event-cards .card');
+    cards.forEach((card) => {
+      const slides = Array.from(card.querySelectorAll('.card__slide'));
+      const hudIdx = card.querySelector('.hud-idx');
+      const hudTotal = card.querySelector('.hud-total');
+      const progressBar = card.querySelector('.card__progress-bar');
+      const dots = Array.from(card.querySelectorAll('.card__dot'));
+      const slug = card.dataset.slug;
+
+      if (hudTotal && slides.length) {
+        hudTotal.textContent = String(slides.length).padStart(2, '0');
+      }
+
+      let curIdx = 0;
+      let cycleInterval = null;
+      const CYCLE_DURATION = 1300;
+
+      function setSlide(idx) {
+        curIdx = idx;
+        slides.forEach((sl, i) => sl.classList.toggle('active', i === curIdx));
+        dots.forEach((dt, i) => dt.classList.toggle('active', i === curIdx));
+        if (hudIdx) hudIdx.textContent = String(curIdx + 1).padStart(2, '0');
+      }
+
+      function startProgress() {
+        if (!progressBar) return;
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '0%';
+        void progressBar.offsetWidth; // force reflow
+        progressBar.style.transition = `width ${CYCLE_DURATION}ms linear`;
+        progressBar.style.width = '100%';
+      }
+
+      function resetProgress() {
+        if (!progressBar) return;
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '0%';
+      }
+
+      function startCycling() {
+        if (slides.length <= 1) return;
+        clearInterval(cycleInterval);
+        startProgress();
+        cycleInterval = setInterval(() => {
+          const next = (curIdx + 1) % slides.length;
+          setSlide(next);
+          startProgress();
+        }, CYCLE_DURATION);
+      }
+
+      function stopCycling() {
+        clearInterval(cycleInterval);
+        cycleInterval = null;
+        resetProgress();
+        setSlide(0);
+      }
+
+      card.addEventListener('mouseenter', startCycling);
+      card.addEventListener('mouseleave', stopCycling);
+      card.addEventListener('focusin', startCycling);
+      card.addEventListener('focusout', stopCycling);
+
+      // Subtle magnetic tilt towards cursor
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReducedMotion) {
+        const MAX_TILT = 6.5; // degrees of subtle tilt
+        const MAX_TRANS = 5;  // px of subtle magnetic pull
+        let tiltRaf = null;
+        let tX = 50, tY = 50, pX = 0, pY = 0;
+
+        const updateTilt = () => {
+          tiltRaf = null;
+          const rotX = (pY * MAX_TILT).toFixed(2);
+          const rotY = (-pX * MAX_TILT).toFixed(2);
+          const trX = (pX * MAX_TRANS).toFixed(1);
+          const trY = (pY * MAX_TRANS - 5).toFixed(1);
+
+          card.style.setProperty('--tilt-x', `${rotX}deg`);
+          card.style.setProperty('--tilt-y', `${rotY}deg`);
+          card.style.setProperty('--trans-x', `${trX}px`);
+          card.style.setProperty('--trans-y', `${trY}px`);
+          card.style.setProperty('--trans-z', '12px');
+          card.style.setProperty('--shine-x', `${tX.toFixed(1)}%`);
+          card.style.setProperty('--shine-y', `${tY.toFixed(1)}%`);
+        };
+
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          tX = (x / rect.width) * 100;
+          tY = (y / rect.height) * 100;
+          pX = (x / rect.width) * 2 - 1;
+          pY = (y / rect.height) * 2 - 1;
+
+          if (!card.classList.contains('is-tilting')) {
+            card.classList.add('is-tilting');
+            card.classList.remove('is-resetting');
+          }
+
+          if (!tiltRaf) {
+            tiltRaf = requestAnimationFrame(updateTilt);
+          }
+        });
+
+        card.addEventListener('mouseleave', () => {
+          if (tiltRaf) {
+            cancelAnimationFrame(tiltRaf);
+            tiltRaf = null;
+          }
+          card.classList.remove('is-tilting');
+          card.classList.add('is-resetting');
+          card.style.setProperty('--tilt-x', '0deg');
+          card.style.setProperty('--tilt-y', '0deg');
+          card.style.setProperty('--trans-x', '0px');
+          card.style.setProperty('--trans-y', '0px');
+          card.style.setProperty('--trans-z', '0px');
+        });
+      }
+
+      const triggerModal = () => openEventBySlug(slug, card);
+      card.addEventListener('click', triggerModal);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerModal();
+        }
+      });
+    });
+
+    // Category filter chips
+    const chips = $$('#event-chips .chip');
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const cat = (chip.dataset.cat || chip.textContent).trim().toUpperCase();
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        cards.forEach((c) => {
+          const cCat = (c.dataset.category || '').trim().toUpperCase();
+          let match = false;
+          if (cat === 'ALL') {
+            match = true;
+          } else if (cat === 'BRANCH GALA' || cat === 'BRANCH ENTRY') {
+            match = cCat.includes('BRANCH') || cCat.includes('GALA') || cCat.includes('ENTRY');
+          } else {
+            match = cCat === cat;
+          }
+          c.hidden = !match;
+        });
+      });
+    });
   }
 
   async function loadEvents() {
+    initEventCards();
     try {
       allEvents = await api('/events');
-      renderEvents();
-    } catch { $('#event-cards').replaceChildren(h('p', { class: 'err-msg', text: 'Could not load events. Refresh to try again.' })); }
+      if (Array.isArray(allEvents) && allEvents.length > 0) {
+        allEvents.forEach((ev) => {
+          const card = $(`#event-cards .card[data-slug="${ev.slug}"]`);
+          if (card && Array.isArray(ev.gallery) && ev.gallery.length > 0) {
+            card.dataset.gallery = JSON.stringify(ev.gallery);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('Using pre-rendered event cards fallback:', err);
+    }
   }
 
   async function loadArchive() {
@@ -428,22 +853,23 @@
     } finally { btn.disabled = false; }
   });
 
-  /* ---------------- admin section & login console ---------------- */
+  /* ---------------- admin section & login modal ---------------- */
   function initAdminSection() {
     const adminSec = $('#admin');
-    if (!adminSec) return;
+    const loginModal = $('#admin-login-modal');
+    const openBtn = $('#open-admin-login-btn');
+    if (!adminSec || !loginModal) return;
 
-    const authPanel = $('#admin-auth-panel');
-    const sessionPanel = $('#admin-session-panel');
-    const form = $('#admin-login-form');
-    const userInp = $('#term-user');
-    const passInp = $('#term-pass');
-    const togglePw = $('#term-toggle-pw');
-    const status = $('#term-status');
-    const submitBtn = $('#term-submit-btn');
-    const sessionUser = $('#session-username');
-    const sessionDept = $('#session-dept');
-    const logoutBtn = $('#session-logout-btn');
+    const authFormWrap = $('#modal-auth-form-wrap');
+    const sessionWrap = $('#modal-auth-session-wrap');
+    const form = $('#modal-admin-login-form');
+    const userInp = $('#modal-term-user');
+    const passInp = $('#modal-term-pass');
+    const togglePw = $('#modal-term-toggle-pw');
+    const status = $('#modal-term-status');
+    const submitBtn = $('#modal-term-submit-btn');
+    const modalSessionUser = $('#modal-session-user');
+    const logoutBtn = $('#modal-logout-btn');
 
     const TOKEN_KEY = 'cipher-admin-token';
     const USER_KEY = 'cipher-admin-user';
@@ -452,17 +878,34 @@
       const token = storage.get(TOKEN_KEY);
       const user = storage.get(USER_KEY) || 'Administrator';
       if (token) {
-        if (authPanel) authPanel.hidden = true;
-        if (sessionPanel) {
-          sessionPanel.hidden = false;
-          if (sessionUser) sessionUser.textContent = user.toUpperCase();
-          if (sessionDept) sessionDept.textContent = 'Department of CSE';
+        if (authFormWrap) authFormWrap.hidden = true;
+        if (sessionWrap) sessionWrap.hidden = false;
+        if (modalSessionUser) modalSessionUser.textContent = user;
+        if (openBtn) {
+          openBtn.textContent = 'Open Portal ↗';
+          openBtn.classList.add('active-session');
         }
       } else {
-        if (authPanel) authPanel.hidden = false;
-        if (sessionPanel) sessionPanel.hidden = true;
+        if (authFormWrap) authFormWrap.hidden = false;
+        if (sessionWrap) sessionWrap.hidden = true;
+        if (openBtn) {
+          openBtn.textContent = 'Admin Login →';
+          openBtn.classList.remove('active-session');
+        }
       }
     };
+
+    // Open Admin Modal
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        if (status) {
+          status.className = 'form-status';
+          status.textContent = '';
+        }
+        checkSession();
+        loginModal.showModal();
+      });
+    }
 
     // Toggle password visibility
     if (togglePw && passInp) {
@@ -473,24 +916,38 @@
       });
     }
 
-    // Quick fill handlers on admin cards and quick buttons
+    // Quick select handlers for fast fill
     const handleFill = (user, pass) => {
       if (userInp) userInp.value = user || '';
       if (passInp) passInp.value = pass || '';
       if (status) {
         status.className = 'form-status';
-        status.textContent = `> Selected: ${user} (Ready to verify)`;
+        status.textContent = `Selected: ${user} (Ready to verify)`;
       }
-      const terminal = $('#admin-terminal');
-      if (terminal) {
-        terminal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (loginModal && !loginModal.open) {
+        checkSession();
+        loginModal.showModal();
       }
       if (passInp) passInp.focus();
     };
 
-    $$('[data-user]').forEach((btn) => {
+    $$('.quick-select-pill[data-user]').forEach((btn) => {
       btn.addEventListener('click', () => {
         handleFill(btn.getAttribute('data-user'), btn.getAttribute('data-pass'));
+      });
+    });
+
+    // Also clicking an admin card opens the modal pre-filled for that admin
+    $$('.admin-card-v2[data-admin-id]').forEach((card) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('a')) return; // let social links work normally
+        const id = card.getAttribute('data-admin-id');
+        const passMap = {
+          aarav: 'aarav2026',
+          sneha: 'sneha2026',
+          rohan: 'rohan2026',
+        };
+        handleFill(id, passMap[id] || `${id}2026`);
       });
     });
 
@@ -504,12 +961,12 @@
         status.className = 'form-status';
         if (!username || !password) {
           status.classList.add('err');
-          status.textContent = '> Error: Both username and password are required.';
+          status.textContent = 'Both username and password are required.';
           return;
         }
 
         submitBtn.disabled = true;
-        status.textContent = '> [ AUTHENTICATING ACCESS PRIVILEGES... ]';
+        status.textContent = 'Authenticating access privileges…';
 
         try {
           const res = await fetch('/api/admin/login', {
@@ -526,14 +983,14 @@
           storage.set(USER_KEY, data.username || username);
 
           status.classList.add('ok');
-          status.textContent = '> [ ACCESS GRANTED // INITIALIZING SECURE SESSION ]';
+          status.textContent = '✓ Access Granted. Launching session…';
 
           setTimeout(() => {
             checkSession();
-          }, 600);
+          }, 500);
         } catch (err) {
           status.classList.add('err');
-          status.textContent = `> Access Denied: ${err.message}`;
+          status.textContent = `Access Denied: ${err.message}`;
         } finally {
           submitBtn.disabled = false;
         }
@@ -548,13 +1005,90 @@
         if (form) form.reset();
         if (status) {
           status.className = 'form-status';
-          status.textContent = '> Session terminated. Please authenticate to resume.';
+          status.textContent = 'Session terminated.';
         }
         checkSession();
       });
     }
 
     checkSession();
+  }
+
+  /* ---------------- interactive pillars ---------------- */
+  function initPillars() {
+    const pillars = $$('.pillar');
+    const chars = '01#$*!~_><[]%&';
+
+    pillars.forEach((pillar) => {
+      const modEl = pillar.querySelector('.pillar__mod');
+      const originalText = modEl ? modEl.textContent : '';
+
+      // Dynamic mouse spotlight tracking
+      pillar.addEventListener('mousemove', (e) => {
+        const rect = pillar.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        pillar.style.setProperty('--mouse-x', `${x}%`);
+        pillar.style.setProperty('--mouse-y', `${y}%`);
+      });
+
+      // Hover trigger: laser sweep & hacker text decipher scramble
+      pillar.addEventListener('mouseenter', () => {
+        pillar.classList.add('scanning');
+        setTimeout(() => pillar.classList.remove('scanning'), 900);
+
+        if (modEl && originalText) {
+          let iteration = 0;
+          const maxIterations = 8;
+          clearInterval(pillar._scrambleInterval);
+          pillar._scrambleInterval = setInterval(() => {
+            modEl.textContent = originalText
+              .split('')
+              .map((char, index) => {
+                if (char === ' ' || char === '/' || char === '·') return char;
+                if (index < iteration) return originalText[index];
+                return chars[Math.floor(Math.random() * chars.length)];
+              })
+              .join('');
+
+            if (iteration >= originalText.length) {
+              clearInterval(pillar._scrambleInterval);
+              modEl.textContent = originalText;
+            }
+            iteration += originalText.length / maxIterations;
+          }, 32);
+        }
+      });
+
+      pillar.addEventListener('mouseleave', () => {
+        clearInterval(pillar._scrambleInterval);
+        if (modEl) modEl.textContent = originalText;
+      });
+
+      // Smooth scroll navigation with category filter auto-select
+      const handleAction = () => {
+        const target = pillar.dataset.target;
+        if (target) {
+          const el = $(target);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            const filter = pillar.dataset.filter;
+            if (filter) {
+              const chip = $(`#event-chips .chip[data-cat="${filter}"]`);
+              if (chip) chip.click();
+            }
+          }
+        }
+      };
+
+      pillar.addEventListener('click', handleAction);
+      pillar.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleAction();
+        }
+      });
+    });
   }
 
   /* ---------------- mobile menu ---------------- */
@@ -575,8 +1109,38 @@
     if (el) io.observe(el);
   });
 
+  /* ---------------- viewport scroll reveal ---------------- */
+  function initScrollReveal() {
+    if (reduceMotion) {
+      $(".reveal").forEach((el) => el.classList.add("in-view"));
+      return;
+    }
+    const revealTargets = $(
+      ".section, .pillar, .card, .admin-card-v2, .admin-login-banner, .archive li, .about__text, .about__collage"
+    );
+    revealTargets.forEach((el) => {
+      el.classList.add("reveal");
+      const siblings = el.parentNode ? Array.from(el.parentNode.children) : [];
+      const idx = siblings.indexOf(el);
+      el.style.setProperty("--reveal-delay", String(idx >= 0 ? idx % 6 : 0));
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -40px 0px", threshold: 0.06 });
+
+    revealTargets.forEach((el) => observer.observe(el));
+  }
+
   /* ---------------- boot ---------------- */
   runIntro(); startWaves(); startHeroDots();
+  initPillars();
   loadLeaders(); loadEvents(); loadArchive();
   initAdminSection();
+  initScrollReveal();
 })();

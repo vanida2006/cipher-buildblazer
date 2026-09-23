@@ -67,6 +67,9 @@ try {
   const bcrypt = require('bcryptjs');
   const adminsToAdd = [
     { username: 'admin', pass: 'cipher2026admin' },
+    { username: 'aarav', pass: 'aarav2026' },
+    { username: 'sneha', pass: 'sneha2026' },
+    { username: 'rohan', pass: 'rohan2026' },
     { username: 'carol', pass: 'carol2026' },
     { username: 'ashna', pass: 'ashna2026' },
     { username: 'ashlin', pass: 'ashlin2026' },
