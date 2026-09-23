@@ -356,26 +356,40 @@
   }
 
   /* ---------------- events + modal ---------------- */
+  /* ---------------- events + modal ---------------- */
   const DEFAULT_EVENTS = [
     {
-      slug: 'lumiere-the-gala',
-      title: 'Lumière — The Gala',
-      category: 'Branch Gala',
-      event_date: '2025-10-29',
-      venue: 'Kalam Auditorium',
-      summary: 'The CSE branch entry programme at Kalam Auditorium, themed "Where Glam Meets Glow." Organised by the Cipher Association with coordinated red, gold and black decor, it welcomed students into the department and reinforced a shared sense of collective identity.',
+      slug: 'agentforce-workshop',
+      title: 'Agentforce Workshop',
+      category: 'Workshop',
+      event_date: '2026-05-22',
+      venue: 'Dept. of CSE, SJEC',
+      summary: 'A hands-on workshop with Salesforce on building AI agents and prompt-based workflow automation in Trailhead.',
       body: [
-        'The Department of Computer Science and Engineering (CSE) held its branch entry programme, “Lumière – The Gala,”  29 October 2025 at the Kalam Auditorium. Organised by the Cipher Association, the event welcomed students into the department through a formal gathering centred on the theme “Where Glam Meets Glow.” The venue featured coordinated red, gold and black décor, floral arrangements, illuminated panels and a central Lumière backdrop.',
-        'The programme provided students with an opportunity to interact with peers and take part in a shared departmental event beyond academics. It also highlighted the role of the Cipher Association in organising student-led activities and encouraging participation within the CSE community.',
-        'The event concluded as a formal branch entry that marked the students’ transition into the department and reinforced a sense of collective identity.'
+        'The AgentBlazer Club, in collaboration with Salesforce, organized a hands-on technical workshop focused on building AI agents and prompt-based workflow automation using the Salesforce Trailhead environment. Students gained practical experience in designing Sales Email Prompt Templates, Flex Prompt Templates, and configuring automated prompt flows to build reusable AI structures.',
+        'Coordinated by faculty coordinator Ms. Nisha Roche and student coordinator Mr. Ruben Saldanha, the session concluded with an interactive discussion on industry applications of AI agents and career opportunities in the Salesforce ecosystem.'
+      ],
+      gallery: []
+    },
+    {
+      slug: 'cybersecurity-career-pathways',
+      title: 'Cyber Security and Career Pathways',
+      category: 'Workshop',
+      event_date: '2026-04-01',
+      venue: 'Room No. 3410, AB II, SJEC',
+      summary: 'A hands-on session by Mr. Suhas Nayak (Ingersoll Rand) with live demos of Shodan, OSINT, Google Dorking and SQL Injection, plus career guidance.',
+      body: [
+        'Organized by the Department of CSE in association with the AgentBlazer Club, this hands-on workshop was delivered by Mr. Suhas Nayak (Tech Lead – SecOps, Ingersoll Rand) for 6th-semester students (mapped to PO6, PO7, PO9, PO11).',
+        'The session provided practical exposure to core security concepts, live tool demonstrations including Shodan, OSINT techniques, Google Dorking, CVE management, SQL Injection, and the Cyber Kill Chain model.',
+        'It concluded with actionable guidance on career roles such as Security Analyst, SOC Analyst, Ethical Hacker, and Cloud Security Engineer.'
       ],
       gallery: [
-       
-        { src: 'img/events/lumiere-the-gala/02.jpg', caption: 'Lumière — The Gala' },
-        { src: 'img/events/lumiere-the-gala/03.jpg', caption: 'Lumière — The Gala' },
-        { src: 'img/events/lumiere-the-gala/04.jpg', caption: 'Lumière — The Gala' },
-        { src: 'img/events/lumiere-the-gala/05.jpg', caption: 'Lumière — The Gala' },
-        { src: 'img/events/lumiere-the-gala/01.jpg', caption: 'Lumière — The Gala' },
+        { src: 'img/events/cybersecurity-career-pathways/01.jpg', caption: 'Cyber Security and Career Pathways — Session Poster' },
+        { src: 'img/events/cybersecurity-career-pathways/02.jpg', caption: 'Hands-on Security Demonstration' },
+        { src: 'img/events/cybersecurity-career-pathways/03.jpg', caption: 'Students in the Cybersecurity Lab' },
+        { src: 'img/events/cybersecurity-career-pathways/04.jpg', caption: 'Live OSINT & Threat Modeling Demo' },
+        { src: 'img/events/cybersecurity-career-pathways/05.jpg', caption: 'Interactive Q&A Session' },
+        { src: 'img/events/cybersecurity-career-pathways/06.jpg', caption: 'Felicitation of Resource Person' }
       ]
     },
     {
@@ -397,6 +411,87 @@
         { src: 'img/events/prompt-ops-2k26/04.jpg', caption: 'PROMPT OPS-2K26 — Prompt Engineering Challenge' },
         { src: 'img/events/prompt-ops-2k26/05.jpg', caption: 'PROMPT OPS-2K26 — Participants Collaboration' }
       ]
+    },
+    {
+      slug: 'demystifying-generative-models',
+      title: 'Demystifying Generative Models',
+      category: 'Workshop',
+      event_date: '2026-03-18',
+      venue: 'Dept. of CSE, SJEC',
+      summary: 'A peer-learning workshop led by 6th-semester students on transformers, prompt engineering and today\'s leading AI tools.',
+      body: [
+        'Under the guidance of Ms. Nisha J. Roche, 6th-semester CSE students Prajwal Royston Corderio and Chacko P Abraham led a hands-on peer-learning workshop on Generative AI (mapped to PO4, PO6, PO7, PO11).',
+        'The session detailed AI governance frameworks (LLM Council), transformer mechanisms, and prompt engineering, alongside comparisons of LLaMA, Groq, Mistral AI, ChatGPT, GitHub Copilot, and Perplexity.',
+        'Students engaged in an AI quiz, a three-stage model evaluation challenge, and a feature-modification coding task before a valedictory session to end the program.'
+      ],
+      gallery: []
+    },
+    {
+      slug: 'master-the-future-gsoc-llms',
+      title: 'Master the Future: Hands-on GSoC & LLMs Workshop',
+      category: 'Workshop',
+      event_date: '2026-02-14',
+      venue: 'Dept. of CSE, SJEC',
+      summary: 'A hands-on session by Mr. Anas Khan (HackerRank) for about 55 participants on GitHub workflows, Google Summer of Code and the LLM ecosystem.',
+      body: [
+        'Organized by the Department of CSE in association with the AgentBlazer Club, this workshop was conducted by Mr. Anas Khan (Software Development Engineer at HackerRank) for approximately 55 participants.',
+        'The hands-on session provided practical GitHub workflow training (forking, cloning, pull requests), guidance on Google Summer of Code (GSOC) participation, and an overview of the AI ecosystem. Key technical topics covered included LLM parameters (Temperature, Top-P, Max Tokens), prompt strategies, Retrieval Augmented Generation (RAG), function calling, Gemini AI, and development frameworks such as LangChain, LlamaIndex, CrewAI, Gradio, and Streamlit.',
+        'The session opened with a welcome by Club VP Mr. Ajay D\'Souza and concluded with a token of appreciation presented by Faculty Coordinator Ms. Nisha J Roche, along with a vote of thanks by Student President Mr. Ruben Saldanha and support from HOD Dr. Melwyn D’Souza.'
+      ],
+      gallery: [
+        { src: 'img/events/gsoc-llm-workshop/02.jpg', caption: 'GSoC & LLMs Workshop — Presentation Session' },
+        { src: 'img/events/gsoc-llm-workshop/03.jpg', caption: 'Hands-on Coding & Prompt Experiments' },
+        { src: 'img/events/gsoc-llm-workshop/04.jpg', caption: 'Mr. Anas Khan Mentoring Students' },
+        { src: 'img/events/gsoc-llm-workshop/05.jpg', caption: 'Participants Engaging in AI Frameworks' },
+        { src: 'img/events/gsoc-llm-workshop/06.jpg', caption: 'Interactive Hands-on Lab Environment' }
+      ]
+    },
+    {
+      slug: 'lumiere-the-gala',
+      title: 'Lumière — The Gala',
+      category: 'Branch Gala',
+      event_date: '2025-10-29',
+      venue: 'Kalam Auditorium',
+      summary: 'The CSE branch entry programme at Kalam Auditorium, themed "Where Glam Meets Glow." Organised by the Cipher Association with coordinated red, gold and black decor, it welcomed students into the department and reinforced a shared sense of collective identity.',
+      body: [
+        'The Department of Computer Science and Engineering (CSE) held its branch entry programme, “Lumière – The Gala,”  29 October 2025 at the Kalam Auditorium. Organised by the Cipher Association, the event welcomed students into the department through a formal gathering centred on the theme “Where Glam Meets Glow.” The venue featured coordinated red, gold and black décor, floral arrangements, illuminated panels and a central Lumière backdrop.',
+        'The programme provided students with an opportunity to interact with peers and take part in a shared departmental event beyond academics. It also highlighted the role of the Cipher Association in organising student-led activities and encouraging participation within the CSE community.',
+        'The event concluded as a formal branch entry that marked the students’ transition into the department and reinforced a sense of collective identity.'
+      ],
+      gallery: [
+        { src: 'img/events/lumiere-the-gala/01.jpg', caption: 'Lumière — The Gala' },
+        { src: 'img/events/lumiere-the-gala/02.jpg', caption: 'Lumière — The Gala' },
+        { src: 'img/events/lumiere-the-gala/03.jpg', caption: 'Lumière — The Gala' },
+        { src: 'img/events/lumiere-the-gala/04.jpg', caption: 'Lumière — The Gala' },
+        { src: 'img/events/lumiere-the-gala/05.jpg', caption: 'Lumière — The Gala' }
+      ]
+    },
+    {
+      slug: 'agentblazer-club-inauguration',
+      title: 'AgentBlazer Club Inauguration',
+      category: 'Club Launch',
+      event_date: '2025-08-28',
+      venue: 'Dept. of CSE, SJEC',
+      summary: 'The department inaugurated the AgentBlazer Club to foster leadership, innovation and technical excellence, with Salesforce leaders as chief guests.',
+      body: [
+        'The Department of Computer Science & Engineering formally inaugurated the AgentBlazer Club to foster leadership, innovation, and technical excellence among students.',
+        'Chief Guest Mr. Santosh Rebello (Salesforce) emphasized bridging the "role–radiance gap," while Guest of Honor Mr. Stephen Pinto (Salesforce & SJEC alumnus) encouraged continuous learning. Principal Dr. Rio D’Souza called on students to seize growth opportunities.',
+        'The event, coordinated by Mr. Keith Fernandes and Ms. Nisha Roche, included a lamp-lighting ceremony, welcome address by HOD Dr. Melwyn D’Souza, felicitations, and a Vote of Thanks by Student President Mr. Reuben Saldanha.'
+      ],
+      gallery: []
+    },
+    {
+      slug: 'agentforce-technical-session',
+      title: 'Agentforce Technical Session',
+      category: 'Tech Talk',
+      event_date: '2025-08-28',
+      venue: 'Dept. of CSE, SJEC',
+      summary: 'Salesforce executives traced the shift from predictive to agentic AI and outlined career pathways in the Salesforce ecosystem.',
+      body: [
+        'Held alongside the club launch, Salesforce executives Mr. Santhosh Rebello and Mr. Stephen Pinto delivered an expert session on Agentforce and AI career opportunities (Ref: CSE/AB/2025-26/02).',
+        'They traced AI evolution through Predictive, Copilot, and Agentic AI (autonomous systems using Salesforce Data Cloud), highlighted key career pathways in Salesforce Administration, Analytics, and Solution Development, and urged students to build adaptability within the Trailblazer ecosystem.'
+      ],
+      gallery: []
     }
   ];
 
@@ -409,16 +504,25 @@
     const count = $('#em-count');
     const hudCount = $('#em-hud-count');
     const dots = $('#em-dots');
+
+    let placeholder = f ? f.querySelector('.gallery__empty-notice') : null;
+
     if (!gal.length) {
-      if (f) f.className = 'gallery__frame empty';
+      if (f) f.classList.add('empty');
       if (img) img.style.display = 'none';
-      if (f) f.textContent = 'Photos coming soon';
+      if (f && !placeholder) {
+        placeholder = h('div', { class: 'gallery__empty-notice', text: 'Photos coming soon' });
+        f.appendChild(placeholder);
+      }
+      if (placeholder) placeholder.style.display = 'block';
       if (count) count.textContent = '00 / 00';
       if (hudCount) hudCount.textContent = '00 / 00';
       if (dots) dots.replaceChildren();
       return;
     }
-    if (f) f.className = 'gallery__frame';
+
+    if (placeholder) placeholder.style.display = 'none';
+    if (f) f.classList.remove('empty');
     const s = gal[gi];
     if (img) {
       img.style.display = 'block';
@@ -459,10 +563,10 @@
     if (cardSub) {
       cardSub.textContent = ev.slug === 'lumiere-the-gala'
         ? 'CSE Branch Entry · Kalam Auditorium'
-        : 'AgentBlazer Club × Cipher';
+        : (ev.venue ? `${ev.category} · ${ev.venue}` : 'AgentBlazer Club × Cipher');
     }
     if (hudTag) {
-      hudTag.textContent = ev.slug === 'lumiere-the-gala' ? 'LUMIERE_GALA' : 'PROMPT_OPS';
+      hudTag.textContent = (ev.slug || 'EVENT').replace(/-/g, '_').toUpperCase();
     }
 
     gal = (ev.gallery && ev.gallery.length) ? ev.gallery : [];
@@ -536,29 +640,235 @@
     }, { passive: true });
   }
 
+  /* ---------------- Event card builder with hover cycling slideshow ---------------- */
   let allEvents = [];
+  let currentCategory = 'all';
+
+  function createEventCard(ev) {
+    const hasGallery = Array.isArray(ev.gallery) && ev.gallery.length > 0;
+
+    const card = h('article', {
+      class: `card${hasGallery ? ' has-gallery' : ''}`,
+      tabindex: '0',
+      role: 'button',
+      'aria-label': `${ev.title} - ${ev.category}`
+    });
+
+    // 1. Text Content Layer (Always visible initially)
+    const content = h('div', { class: 'card__content' },
+      h('div', { class: 'card__top' },
+        h('span', { class: 'card__cat', text: `◫ ${ev.category}` }),
+        h('span', { class: 'card__date', text: fmtDate(ev.event_date) })
+      ),
+      h('h3', { class: 'card__title', text: ev.title }),
+      h('p', { class: 'card__summary', text: ev.summary }),
+      h('div', { class: 'card__bottom' },
+        h('span', { class: 'card__cta', text: 'VIEW DETAILS ↗' })
+      )
+    );
+    card.append(content);
+
+    // 2. Hover Photo Slideshow Layer (Active when photos exist)
+    if (hasGallery) {
+      let slideIdx = 0;
+      let timer = null;
+
+      const mediaImg = h('img', {
+        class: 'card__media-img',
+        src: ev.gallery[0].src,
+        alt: ev.gallery[0].caption || ev.title,
+        loading: 'lazy'
+      });
+
+      const countBadge = h('span', {
+        class: 'card__media-count',
+        text: `01 / ${String(ev.gallery.length).padStart(2, '0')}`
+      });
+
+      const dotsContainer = h('div', { class: 'card__media-dots' },
+        ...ev.gallery.map((_, i) => h('span', { class: `card__media-dot${i === 0 ? ' active' : ''}` }))
+      );
+
+      const mediaOverlay = h('div', { class: 'card__media-overlay' },
+        h('div', { class: 'card__media-top' },
+          h('span', { class: 'card__cat', text: `◫ ${ev.category}` }),
+          countBadge
+        ),
+        h('div', { class: 'card__media-bottom' },
+          h('h4', { class: 'card__media-title', text: ev.title }),
+          dotsContainer,
+          h('span', { class: 'card__cta', text: 'VIEW DETAILS ↗' })
+        )
+      );
+
+      const media = h('div', { class: 'card__media', 'aria-hidden': 'true' },
+        h('div', { class: 'card__media-bg' }, mediaImg),
+        mediaOverlay
+      );
+      card.append(media);
+
+      const updateSlide = (idx) => {
+        slideIdx = idx;
+        mediaImg.classList.add('crossfading');
+        setTimeout(() => {
+          mediaImg.src = ev.gallery[slideIdx].src;
+          mediaImg.alt = ev.gallery[slideIdx].caption || ev.title;
+          mediaImg.classList.remove('crossfading');
+        }, 120);
+        countBadge.textContent = `${String(slideIdx + 1).padStart(2, '0')} / ${String(ev.gallery.length).padStart(2, '0')}`;
+        const allDots = dotsContainer.querySelectorAll('.card__media-dot');
+        allDots.forEach((d, i) => d.classList.toggle('active', i === slideIdx));
+      };
+
+      const startCycling = () => {
+        if (timer || ev.gallery.length <= 1) return;
+        timer = setInterval(() => {
+          const next = (slideIdx + 1) % ev.gallery.length;
+          updateSlide(next);
+        }, 1300);
+      };
+
+      const stopCycling = () => {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      };
+
+      card.addEventListener('mouseenter', () => {
+        startCycling();
+      });
+
+      card.addEventListener('mouseleave', () => {
+        stopCycling();
+        setTimeout(() => {
+          if (!timer) updateSlide(0);
+        }, 350);
+      });
+    }
+
+    // Modal triggers
+    card.addEventListener('click', () => openEvent(ev));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openEvent(ev);
+      }
+    });
+
+    return card;
+  }
+
+  /* -----------------------------------------------------------------------
+   * initCardHover — attaches hover-cycling to PRE-RENDERED static HTML cards
+   * that carry a `data-gallery` JSON attribute. Called at boot (before the
+   * API response arrives) so the static cards cycle immediately.
+   * ----------------------------------------------------------------------- */
+  function initCardHover() {
+    const cards = document.querySelectorAll('.card.has-gallery[data-gallery]');
+    cards.forEach((card) => {
+      // Don't attach twice
+      if (card._hoverInit) return;
+      card._hoverInit = true;
+
+      let rawGallery;
+      try { rawGallery = JSON.parse(card.dataset.gallery); } catch { return; }
+      if (!Array.isArray(rawGallery) || rawGallery.length < 2) return;
+
+      // Normalise to the same shape createEventCard uses
+      const gallery = rawGallery.map((src) => ({ src, caption: '' }));
+
+      const mediaImg   = card.querySelector('.card__media-img');
+      const countBadge = card.querySelector('.card__media-count');
+      const dotsWrap   = card.querySelector('.card__media-dots');
+      if (!mediaImg) return;
+
+      let slideIdx = 0;
+      let timer    = null;
+
+      const updateSlide = (idx) => {
+        slideIdx = idx;
+        mediaImg.classList.add('crossfading');
+        setTimeout(() => {
+          mediaImg.src = gallery[slideIdx].src;
+          mediaImg.classList.remove('crossfading');
+        }, 120);
+        if (countBadge) {
+          countBadge.textContent =
+            `${String(slideIdx + 1).padStart(2, '0')} / ${String(gallery.length).padStart(2, '0')}`;
+        }
+        if (dotsWrap) {
+          dotsWrap.querySelectorAll('.card__media-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === slideIdx);
+          });
+        }
+      };
+
+      const startCycling = () => {
+        if (timer) return;
+        timer = setInterval(() => updateSlide((slideIdx + 1) % gallery.length), 1300);
+      };
+
+      const stopCycling = () => {
+        if (timer) { clearInterval(timer); timer = null; }
+      };
+
+      card.addEventListener('mouseenter', startCycling);
+      card.addEventListener('mouseleave', () => {
+        stopCycling();
+        setTimeout(() => { if (!timer) updateSlide(0); }, 350);
+      });
+    });
+  }
+
   function renderEvents() {
     const box = $('#event-cards');
+    const emptyMsg = $('#events-empty');
     if (!box) return;
-    const eventsToRender = (allEvents && allEvents.length ? allEvents : DEFAULT_EVENTS).slice(0, 2);
-    box.replaceChildren(...eventsToRender.map((ev) => {
-      const card = h('button', { class: 'card', type: 'button' },
-        h('div', { class: 'card__top' },
-          h('span', { class: 'card__cat', text: `◫ ${ev.category}` }),
-          h('span', { class: 'card__date', text: fmtDate(ev.event_date) })
-        ),
-        h('h3', { text: ev.title }),
-        h('p', { text: ev.summary })
-      );
-      card.addEventListener('click', () => openEvent(ev));
-      return card;
-    }));
+
+    const list = (allEvents && allEvents.length ? allEvents : DEFAULT_EVENTS);
+    const filtered = list.filter((ev) => {
+      if (currentCategory === 'all') return true;
+      const cat = (ev.category || '').toLowerCase();
+      if (currentCategory === 'workshop') return cat.includes('workshop');
+      if (currentCategory === 'competition') return cat.includes('competition');
+      if (currentCategory === 'branch') return cat.includes('branch') || cat.includes('gala');
+      if (currentCategory === 'club-launch') return cat.includes('club') || cat.includes('inauguration') || cat.includes('launch');
+      if (currentCategory === 'tech-talk') return cat.includes('tech') || cat.includes('talk');
+      return true;
+    });
+
+    box.replaceChildren(...filtered.map(createEventCard));
+    if (emptyMsg) {
+      emptyMsg.hidden = filtered.length > 0;
+    }
+  }
+
+  function initEventFilter() {
+    const filterContainer = $('#event-filter');
+    if (!filterContainer) return;
+
+    filterContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      const filter = btn.dataset.filter;
+      if (filter === currentCategory) return;
+
+      currentCategory = filter;
+      filterContainer.querySelectorAll('.filter-btn').forEach((b) => {
+        const isActive = b === btn;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', String(isActive));
+      });
+
+      renderEvents();
+    });
   }
 
   async function loadEvents() {
     try {
       const list = await api('/events');
-      if (Array.isArray(list) && list.length) {
+      if (Array.isArray(list) && list.length >= 8) {
         allEvents = list;
       } else {
         allEvents = DEFAULT_EVENTS;
@@ -788,7 +1098,8 @@
 
   /* ---------------- boot ---------------- */
   runIntro(); startWaves(); startHeroDots();
-  loadLeaders(); loadEvents(); loadArchive();
+  initCardHover();                          // attach hover cycling to pre-rendered static cards immediately
+  loadLeaders(); loadEvents(); initEventFilter(); loadArchive();
   initAboutCollage(); initHeadingScrollEffects();
 })();
 
