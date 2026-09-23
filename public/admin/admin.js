@@ -9,13 +9,13 @@
   const USER_KEY = 'cipher-admin-user';
 
   let token = null;
-  let currentUser = 'Admin';
+  let currentUser = 'sneha';
   try {
     token = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
-    currentUser = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY) || 'Admin';
+    currentUser = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY) || 'sneha';
   } catch {}
 
-  /* ---------------- DOM Helpers ---------------- */
+  /* ---------------- DOM Construction Helper ---------------- */
   function h(tag, props = {}, ...kids) {
     const el = document.createElement(tag);
     for (const [k, v] of Object.entries(props)) {
@@ -39,23 +39,26 @@
     );
   }
 
+  /* ---------------- Clean Cyber SVG Icons ---------------- */
   function svgIcon(name, size = 18) {
     const icons = {
-      dashboard: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>',
-      events: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>',
-      registrations: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-      members: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-      content: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>',
-      settings: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
-      plus: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-      external: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
-      logout: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-      search: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
-      trash: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
-      eye: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
-      edit: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>',
-      download: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-      clock: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+      dashboard: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`,
+      events: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>`,
+      calendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>`,
+      registrations: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+      content: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>`,
+      settings: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+      clock: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+      fileText: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>`,
+      plus: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+      plusCalendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><line x1="12" x2="12" y1="14" y2="18"/><line x1="10" x2="14" y1="16" y2="16"/></svg>`,
+      logout: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+      search: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+      trash: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+      eye: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      edit: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>`,
+      download: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+      external: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`
     };
     const wrap = document.createElement('span');
     wrap.style.display = 'inline-flex';
@@ -64,6 +67,7 @@
     return wrap;
   }
 
+  /* ---------------- Toast Notification ---------------- */
   let toastTimer;
   function toast(msg, bad = false) {
     const t = $('#toast');
@@ -74,6 +78,7 @@
     toastTimer = setTimeout(() => { t.className = 'toast'; }, 2600);
   }
 
+  /* ---------------- Safe API Fetch Helper ---------------- */
   async function api(path, { method = 'GET', body, form, raw } = {}) {
     const headers = {};
     if (token) headers.Authorization = 'Bearer ' + token;
@@ -95,7 +100,7 @@
 
   function logout() {
     token = null;
-    currentUser = 'Admin';
+    currentUser = 'sneha';
     try {
       sessionStorage.removeItem(TOKEN_KEY);
       sessionStorage.removeItem(USER_KEY);
@@ -105,7 +110,7 @@
     renderLogin();
   }
 
-  /* ---------------- File Upload Helper ---------------- */
+  /* ---------------- Image / File Upload ---------------- */
   async function uploadFile(file) {
     const fd = new FormData();
     fd.append('file', file);
@@ -113,13 +118,41 @@
     return res.url;
   }
 
+  /* ---------------- Relative Time Formatter ---------------- */
+  function timeAgo(dateString) {
+    if (!dateString) return 'recently';
+    const now = new Date();
+    const past = new Date(dateString);
+    const elapsedSeconds = Math.floor((now - past) / 1000);
+
+    if (isNaN(elapsedSeconds) || elapsedSeconds < 0) return 'just now';
+    if (elapsedSeconds < 60) return `${elapsedSeconds}s ago`;
+    const mins = Math.floor(elapsedSeconds / 60);
+    if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
+    const months = Math.floor(days / 30);
+    return `${months} mo ago`;
+  }
+
+  function formatMonthDay(dateString) {
+    if (!dateString) return { day: '--', month: 'TBD' };
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return { day: dateString.slice(8, 10) || '--', month: 'DATE' };
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    return { day, month };
+  }
+
   /* ---------------- Modal Overlay Component ---------------- */
   function showModal(title, bodyContent, onSave = null, saveBtnText = 'Save Changes') {
     const overlay = h('div', { class: 'admin-modal-overlay' });
     const closeBtn = h('button', { class: 'admin-modal-close', text: '✕', onclick: () => overlay.remove() });
 
-    const header = h('div', { class: 'panel-card-header' },
-      h('h3', { class: 'panel-card-title', text: title }),
+    const header = h('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1.4rem;padding-bottom:.8rem;border-bottom:1px solid var(--line);' },
+      h('h3', { style: 'font-size:1.15rem;color:var(--white);font-weight:600;', text: title }),
       closeBtn
     );
 
@@ -150,59 +183,73 @@
      1. LOGIN SCREEN
      ========================================================================= */
   function renderLogin() {
+    const userInput = h('input', {
+      type: 'text',
+      required: true,
+      placeholder: 'Admin username (e.g. sneha, admin)',
+      value: 'sneha'
+    });
+
+    const passInput = h('input', {
+      type: 'password',
+      required: true,
+      placeholder: 'Password (e.g. cipher2026)'
+    });
+
     const statusBox = h('div', { class: 'login-status-box' });
-    const userInput = h('input', { name: 'username', required: true, placeholder: 'admin / username', autocomplete: 'username' });
-    const passInput = h('input', { name: 'password', type: 'password', required: true, placeholder: 'Enter password', autocomplete: 'current-password' });
-    const rememberBox = h('input', { type: 'checkbox', name: 'remember', style: 'width:auto;margin:0;accent-color:var(--g);cursor:pointer;' });
-    const submitBtn = h('button', { class: 'btn solid', type: 'submit', style: 'width:100%;margin-top:.8rem;' }, 'Login to Dashboard →');
+    const rememberBox = h('input', { type: 'checkbox', checked: true });
 
-    const form = h('form', { class: 'login-card', onsubmit: async (e) => {
-      e.preventDefault();
-      statusBox.className = 'login-status-box';
-      statusBox.textContent = 'Authenticating…';
-      submitBtn.disabled = true;
+    const submitBtn = h('button', {
+      class: 'btn solid',
+      type: 'submit',
+      style: 'width:100%;margin-top:.8rem;padding:.75rem;'
+    }, 'Authenticate & Enter Dashboard');
 
-      try {
-        const r = await api('/admin/login', {
-          method: 'POST',
-          body: { username: userInput.value.trim(), password: passInput.value }
-        });
+    const form = h('form', {
+      class: 'login-form-card',
+      onsubmit: async (e) => {
+        e.preventDefault();
+        statusBox.className = 'login-status-box';
+        statusBox.textContent = 'Verifying credentials…';
+        submitBtn.disabled = true;
 
-        token = r.token;
-        currentUser = r.username || userInput.value.trim() || 'Admin';
         try {
-          sessionStorage.setItem(TOKEN_KEY, token);
-          sessionStorage.setItem(USER_KEY, currentUser);
-          if (rememberBox.checked) {
-            localStorage.setItem(TOKEN_KEY, token);
-            localStorage.setItem(USER_KEY, currentUser);
-          }
-        } catch {}
+          const res = await api('/admin/login', {
+            method: 'POST',
+            body: { username: userInput.value.trim(), password: passInput.value }
+          });
 
-        statusBox.className = 'login-status-box ok';
-        statusBox.textContent = '✓ Access granted. Loading dashboard…';
-        setTimeout(() => renderShell('Dashboard'), 300);
-      } catch (ex) {
-        statusBox.className = 'login-status-box err';
-        statusBox.textContent = `Error: ${ex.message}`;
-        submitBtn.disabled = false;
+          token = res.token;
+          currentUser = res.username || userInput.value.trim() || 'sneha';
+
+          const store = rememberBox.checked ? localStorage : sessionStorage;
+          store.setItem(TOKEN_KEY, token);
+          store.setItem(USER_KEY, currentUser);
+
+          toast('Access granted. Welcome back, ' + currentUser);
+          renderShell('Dashboard');
+        } catch (err) {
+          statusBox.className = 'login-status-box err';
+          statusBox.textContent = err.message || 'Authentication failed. Please verify credentials.';
+          submitBtn.disabled = false;
+        }
       }
-    } },
+    },
       h('div', { class: 'login-header' },
         h('div', { style: 'display:inline-flex;padding:.8rem;border-radius:12px;background:rgba(0,255,102,0.1);border:1px solid var(--line);margin-bottom:1rem;' },
           svgIcon('events', 28)
         ),
         h('h1', { text: 'CIPHER // ADMIN' }),
-        h('p', { text: 'Centralized control system for events, registrations, content, and community moderation.' })
+        h('p', { text: 'SJEC CSE Department Admin Dashboard' })
       ),
-      field('Admin Email / Username', userInput),
+      field('Admin Username', userInput),
       field('Password', passInput),
       h('div', { style: 'display:flex;align-items:center;justify-content:space-between;margin:.4rem 0 1rem 0;' },
         h('label', { style: 'display:inline-flex;align-items:center;gap:.5rem;margin:0;cursor:pointer;' },
           rememberBox,
-          h('span', { style: 'font-size:.76rem;color:var(--text-dim);', text: 'Remember me' })
+          h('span', { style: 'font-size:.76rem;color:var(--text-dim);text-transform:none;', text: 'Remember me' })
         ),
-        h('a', { href: '/', style: 'font-size:.76rem;color:var(--g-dim);', text: '← Back to Website' })
+        h('a', { href: '/', style: 'font-size:.76rem;color:var(--g);', text: '← Back to Website' })
       ),
       statusBox,
       submitBtn
@@ -219,23 +266,21 @@
     Dashboard: viewDashboard,
     Events: viewEvents,
     Registrations: viewRegistrations,
-    Members: viewMembers,
     Content: viewContent,
     Settings: viewSettings
   };
 
   let activeTabName = 'Dashboard';
 
-  function renderShell(active = 'Dashboard') {
+  function renderShell(active = 'Dashboard', extraAction = null) {
     activeTabName = active;
     const mainArea = h('main', { class: 'admin-main' });
 
-    // Sidebar navigation
+    // Sidebar navigation items
     const navItems = [
       { id: 'Dashboard', icon: 'dashboard', label: 'Dashboard' },
       { id: 'Events', icon: 'events', label: 'Events' },
       { id: 'Registrations', icon: 'registrations', label: 'Registrations' },
-      { id: 'Members', icon: 'members', label: 'Members' },
       { id: 'Content', icon: 'content', label: 'Content' },
       { id: 'Settings', icon: 'settings', label: 'Settings' }
     ];
@@ -246,7 +291,7 @@
           h('div', { class: 'brand-badge' },
             h('span', { class: 'brand-accent', text: '//' }),
             h('span', { text: 'CIPHER' }),
-            h('span', { style: 'font-size:.7rem;padding:2px 6px;border-radius:4px;background:rgba(0,255,102,0.15);color:var(--g);border:1px solid var(--line);', text: 'ADMIN' })
+            h('span', { class: 'badge-admin-tag', text: 'ADMIN' })
           ),
           h('p', { class: 'brand-sub', text: 'SJEC CSE DEPARTMENT' })
         ),
@@ -256,7 +301,7 @@
               class: `nav-item ${item.id === active ? 'active' : ''}`,
               onclick: () => renderShell(item.id)
             },
-              svgIcon(item.icon, 18),
+              h('span', { class: 'nav-icon' }, svgIcon(item.icon, 18)),
               h('span', { text: item.label })
             );
             return btn;
@@ -264,19 +309,8 @@
         )
       ),
       h('div', { class: 'sidebar-footer' },
-        h('div', { class: 'user-badge-card' },
-          h('div', { class: 'user-avatar-dot' }),
-          h('div', { class: 'user-badge-info' },
-            h('div', { class: 'user-badge-name', text: currentUser }),
-            h('div', { class: 'user-badge-role', text: 'Verified Administrator' })
-          )
-        ),
-        h('a', { href: '/', class: 'sidebar-action-btn btn-site-link' },
-          svgIcon('external', 14),
-          h('span', { text: 'View Public Site' })
-        ),
-        h('button', { class: 'sidebar-action-btn btn-logout', onclick: logout },
-          svgIcon('logout', 14),
+        h('button', { class: 'sidebar-logout-btn', onclick: logout },
+          svgIcon('logout', 16),
           h('span', { text: 'Logout' })
         )
       )
@@ -287,8 +321,29 @@
 
     // Render active tab view
     if (views[active]) {
-      views[active](mainArea).catch((e) => toast(e.message, true));
+      views[active](mainArea, extraAction).catch((e) => toast(e.message, true));
     }
+  }
+
+  /* ---------------- Top Header Strip with User Profile Pill ---------------- */
+  function renderHeaderStrip() {
+    const initial = (currentUser || 'S').trim().charAt(0).toUpperCase();
+
+    const pill = h('div', {
+      class: 'user-profile-pill',
+      title: 'Admin Session Menu',
+      onclick: () => {
+        if (confirm(`Logged in as "${currentUser}". Go to Settings to update password or logout?`)) {
+          renderShell('Settings');
+        }
+      }
+    },
+      h('div', { class: 'user-initial-circle', text: initial }),
+      h('span', { class: 'user-pill-name', text: currentUser }),
+      h('span', { class: 'user-pill-chevron', text: '⌵' })
+    );
+
+    return h('div', { class: 'admin-header-strip' }, pill);
   }
 
   /* =========================================================================
@@ -296,119 +351,184 @@
      ========================================================================= */
   async function viewDashboard(root) {
     root.replaceChildren(
-      h('div', { class: 'admin-topbar' },
-        h('div', { class: 'page-heading-group' },
-          h('h1', {}, svgIcon('dashboard', 24), 'Dashboard Overview'),
-          h('p', { text: 'Real-time telemetry, club activities, and quick actions.' })
-        ),
-        h('div', { class: 'topbar-actions' },
-          h('div', { class: 'system-clock', id: 'admin-clock', text: new Date().toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() }),
-          h('button', { class: 'btn solid sm', onclick: () => renderShell('Events') }, svgIcon('plus', 14), 'Add Event')
-        )
+      renderHeaderStrip(),
+      h('div', { class: 'dashboard-hero' },
+        h('div', { class: 'dashboard-tag', text: '// DASHBOARD' }),
+        h('h1', { class: 'dashboard-heading' }, 'Welcome back, ', h('span', { class: 'accent-name', text: currentUser }), '!'),
+        h('p', { class: 'dashboard-sub', text: 'Manage CIPHER activities, events, registrations and content from one place.' })
       ),
       h('p', { class: 'empty-state', text: 'Loading live dashboard statistics…' })
     );
 
     try {
-      const stats = await api('/admin/stats');
-      const recentLogs = await api('/admin/activity-log?limit=8');
+      // Fetch comprehensive dashboard bundle
+      const data = await api('/admin/dashboard');
+      const stats = data.stats || {};
+      const recentLogs = data.recentActivity || [];
+      const upcomingEvents = data.upcomingEvents || [];
 
-      // Metric Cards
-      const statsGrid = h('div', { class: 'stats-grid' },
-        h('div', { class: 'stat-card' },
-          h('div', { class: 'stat-card-top' },
-            h('span', { class: 'stat-label', text: 'Total Events' }),
-            h('div', { class: 'stat-icon' }, svgIcon('events', 18))
-          ),
-          h('div', { class: 'stat-value', text: String(stats.totalEvents || 0) }),
-          h('div', { class: 'stat-sub', text: `${stats.publishedEvents || 0} published on site` })
+      // 4 Clean Stat Cards
+      const statsGrid = h('div', { class: 'stats-4grid' },
+        // Total Events
+        h('div', { class: 'stat-card-clean' },
+          h('div', { class: 'stat-icon-box' }, svgIcon('calendar', 24)),
+          h('div', { class: 'stat-info-box' },
+            h('div', { class: 'stat-number', text: String(stats.totalEvents ?? 0) }),
+            h('div', { class: 'stat-title', text: 'Total Events' })
+          )
         ),
-        h('div', { class: 'stat-card' },
-          h('div', { class: 'stat-card-top' },
-            h('span', { class: 'stat-label', text: 'Upcoming Events' }),
-            h('div', { class: 'stat-icon' }, svgIcon('clock', 18))
-          ),
-          h('div', { class: 'stat-value', text: String(stats.upcomingEvents || 0) }),
-          h('div', { class: 'stat-sub', text: 'Scheduled future sessions' })
+        // Total Registrations
+        h('div', { class: 'stat-card-clean' },
+          h('div', { class: 'stat-icon-box' }, svgIcon('registrations', 24)),
+          h('div', { class: 'stat-info-box' },
+            h('div', { class: 'stat-number', text: String(stats.totalRegistrations ?? 0) }),
+            h('div', { class: 'stat-title', text: 'Total Registrations' })
+          )
         ),
-        h('div', { class: 'stat-card' },
-          h('div', { class: 'stat-card-top' },
-            h('span', { class: 'stat-label', text: 'Total Registrations' }),
-            h('div', { class: 'stat-icon' }, svgIcon('registrations', 18))
-          ),
-          h('div', { class: 'stat-value', text: String(stats.totalRegistrations || 0) }),
-          h('div', { class: 'stat-sub', text: `${stats.pendingRegistrations || 0} pending review` })
+        // Upcoming Events
+        h('div', { class: 'stat-card-clean' },
+          h('div', { class: 'stat-icon-box' }, svgIcon('clock', 24)),
+          h('div', { class: 'stat-info-box' },
+            h('div', { class: 'stat-number', text: String(stats.upcomingEvents ?? 0) }),
+            h('div', { class: 'stat-title', text: 'Upcoming Events' })
+          )
         ),
-        h('div', { class: 'stat-card' },
-          h('div', { class: 'stat-card-top' },
-            h('span', { class: 'stat-label', text: 'Active Members' }),
-            h('div', { class: 'stat-icon' }, svgIcon('members', 18))
-          ),
-          h('div', { class: 'stat-value', text: String(stats.activeMembers || 0) }),
-          h('div', { class: 'stat-sub', text: 'Council & leadership' })
+        // Published Events
+        h('div', { class: 'stat-card-clean' },
+          h('div', { class: 'stat-icon-box' }, svgIcon('fileText', 24)),
+          h('div', { class: 'stat-info-box' },
+            h('div', { class: 'stat-number', text: String(stats.publishedEvents ?? 0) }),
+            h('div', { class: 'stat-title', text: 'Published Events' })
+          )
         )
       );
 
-      // Quick Actions Panel
-      const quickActions = h('div', { class: 'panel-card' },
-        h('div', { class: 'panel-card-header' },
-          h('h3', { class: 'panel-card-title', text: 'Quick Actions' })
-        ),
-        h('div', { style: 'display:flex;gap:.8rem;flex-wrap:wrap;' },
-          h('button', { class: 'btn solid sm', onclick: () => openEventEditorModal(null, () => renderShell('Dashboard')) }, svgIcon('plus', 14), 'Create New Event'),
-          h('button', { class: 'btn sm', onclick: () => renderShell('Registrations') }, svgIcon('registrations', 14), 'Review Registrations'),
-          h('button', { class: 'btn sm', onclick: () => renderShell('Content') }, svgIcon('content', 14), 'Update Website Content'),
-          h('button', { class: 'btn ghost sm', onclick: guard(async () => {
-            const res = await api('/admin/join-requests.csv', { raw: true });
-            const blob = await res.blob();
-            const a = h('a', { href: URL.createObjectURL(blob), download: 'cipher-registrations.csv' });
-            document.body.append(a); a.click(); a.remove();
-            toast('CSV Export downloaded');
-          }) }, svgIcon('download', 14), 'Export Registrations CSV')
+      // Quick Actions Section
+      const quickActions = h('div', {},
+        h('h2', { class: 'section-subhead', text: 'Quick Actions' }),
+        h('div', { class: 'quick-actions-grid' },
+          // 1. Add New Event
+          h('div', {
+            class: 'quick-action-card',
+            onclick: () => renderShell('Events', 'ADD_EVENT')
+          },
+            h('div', { class: 'quick-action-left' },
+              h('div', { class: 'quick-action-icon' }, svgIcon('plusCalendar', 20)),
+              h('span', { class: 'quick-action-title', text: 'Add New Event' })
+            ),
+            h('span', { class: 'quick-action-arrow', text: '→' })
+          ),
+          // 2. View Registrations
+          h('div', {
+            class: 'quick-action-card',
+            onclick: () => renderShell('Registrations')
+          },
+            h('div', { class: 'quick-action-left' },
+              h('div', { class: 'quick-action-icon' }, svgIcon('registrations', 20)),
+              h('span', { class: 'quick-action-title', text: 'View Registrations' })
+            ),
+            h('span', { class: 'quick-action-arrow', text: '→' })
+          ),
+          // 3. Manage Content
+          h('div', {
+            class: 'quick-action-card',
+            onclick: () => renderShell('Content')
+          },
+            h('div', { class: 'quick-action-left' },
+              h('div', { class: 'quick-action-icon' }, svgIcon('content', 20)),
+              h('span', { class: 'quick-action-title', text: 'Manage Content' })
+            ),
+            h('span', { class: 'quick-action-arrow', text: '→' })
+          ),
+          // 4. Platform Settings
+          h('div', {
+            class: 'quick-action-card',
+            onclick: () => renderShell('Settings')
+          },
+            h('div', { class: 'quick-action-left' },
+              h('div', { class: 'quick-action-icon' }, svgIcon('settings', 20)),
+              h('span', { class: 'quick-action-title', text: 'Platform Settings' })
+            ),
+            h('span', { class: 'quick-action-arrow', text: '→' })
+          )
         )
       );
 
-      // Recent Activity Feed
-      const activityFeed = h('div', { class: 'panel-card' },
-        h('div', { class: 'panel-card-header' },
-          h('h3', { class: 'panel-card-title', text: 'Recent Activity' }),
-          h('button', { class: 'btn ghost xs', onclick: () => renderShell('Settings') }, 'View Full Log')
+      // Bottom 2 Columns: Recent Activity (Left) + Upcoming Events (Right)
+      const recentActivityPanel = h('div', { class: 'clean-panel' },
+        h('div', { class: 'clean-panel-header' },
+          h('h3', { class: 'clean-panel-title', text: 'Recent Activity' }),
+          h('span', {
+            class: 'clean-panel-viewall',
+            onclick: () => renderShell('Settings')
+          }, 'View All →')
         ),
-        recentLogs.length ? h('div', { class: 'activity-list' },
-          recentLogs.map((log) => {
-            const iconType = log.action.includes('EVENT') ? 'event' : (log.action.includes('REG') || log.action.includes('JOIN') ? 'reg' : (log.action.includes('AUTH') ? 'auth' : 'content'));
-            const dateStr = new Date(log.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-            return h('div', { class: 'activity-item' },
-              h('div', { class: `activity-icon-badge ${iconType}` },
-                iconType === 'event' ? svgIcon('events', 16) : (iconType === 'reg' ? svgIcon('registrations', 16) : svgIcon('content', 16))
+        recentLogs.length ? h('div', { class: 'activity-feed-list' },
+          recentLogs.slice(0, 5).map((log, idx) => {
+            const actionStr = (log.action_type || log.action || '').toUpperCase();
+            const dotColor = actionStr.includes('REG') || actionStr.includes('JOIN')
+              ? 'green'
+              : (actionStr.includes('EVENT') ? 'teal' : (actionStr.includes('AUTH') ? 'amber' : 'grey'));
+
+            const text = log.details || log.description || log.action_type || 'Platform activity recorded';
+            const timeStr = timeAgo(log.created_at);
+
+            return h('div', { class: 'activity-feed-row' },
+              h('div', { class: 'activity-feed-left' },
+                h('div', { class: `activity-dot ${dotColor}` }),
+                h('div', { class: 'activity-text', text })
               ),
-              h('div', { class: 'activity-content' },
-                h('div', { class: 'activity-desc', text: log.description || log.action }),
-                h('div', { class: 'activity-meta' },
-                  h('span', { text: `By: ${log.actor || 'System'}` }),
-                  h('span', { text: '·' }),
-                  h('span', { text: dateStr })
-                )
-              )
+              h('div', { class: 'activity-time', text: timeStr })
             );
           })
-        ) : h('p', { class: 'empty-state', text: 'No recent activity recorded.' })
+        ) : h('p', { class: 'empty-state', text: 'No recent activity recorded yet.' })
+      );
+
+      const upcomingEventsPanel = h('div', { class: 'clean-panel' },
+        h('div', { class: 'clean-panel-header' },
+          h('h3', { class: 'clean-panel-title', text: 'Upcoming Events' }),
+          h('span', {
+            class: 'clean-panel-viewall',
+            onclick: () => renderShell('Events')
+          }, 'View All →')
+        ),
+        upcomingEvents.length ? h('div', { class: 'upcoming-events-list' },
+          upcomingEvents.slice(0, 4).map((ev) => {
+            const { day, month } = formatMonthDay(ev.event_date);
+            const isPub = ev.published !== false && ev.published !== 0;
+
+            return h('div', { class: 'upcoming-event-item' },
+              h('div', { class: 'upcoming-event-left' },
+                h('div', { class: 'upcoming-date-badge' },
+                  h('span', { class: 'date-day', text: day }),
+                  h('span', { class: 'date-month', text: month })
+                ),
+                h('div', { class: 'upcoming-details' },
+                  h('div', { class: 'upcoming-name', text: ev.title }),
+                  h('div', { class: 'upcoming-venue', text: ev.venue || 'SJEC Campus' })
+                )
+              ),
+              h('div', { class: `status-pill ${isPub ? 'published' : 'draft'}`, text: isPub ? 'Published' : 'Draft' })
+            );
+          })
+        ) : h('p', { class: 'empty-state', text: 'No scheduled events found.' })
+      );
+
+      const bottomRow = h('div', { class: 'bottom-panels-grid' },
+        recentActivityPanel,
+        upcomingEventsPanel
       );
 
       root.replaceChildren(
-        h('div', { class: 'admin-topbar' },
-          h('div', { class: 'page-heading-group' },
-            h('h1', {}, svgIcon('dashboard', 24), 'Dashboard Overview'),
-            h('p', { text: 'Real-time telemetry, club activities, and quick actions.' })
-          ),
-          h('div', { class: 'topbar-actions' },
-            h('div', { class: 'system-clock', text: new Date().toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() }),
-            h('button', { class: 'btn solid sm', onclick: () => openEventEditorModal(null, () => renderShell('Dashboard')) }, svgIcon('plus', 14), 'Add Event')
-          )
+        renderHeaderStrip(),
+        h('div', { class: 'dashboard-hero' },
+          h('div', { class: 'dashboard-tag', text: '// DASHBOARD' }),
+          h('h1', { class: 'dashboard-heading' }, 'Welcome back, ', h('span', { class: 'accent-name', text: currentUser }), '!'),
+          h('p', { class: 'dashboard-sub', text: 'Manage CIPHER activities, events, registrations and content from one place.' })
         ),
         statsGrid,
         quickActions,
-        activityFeed
+        bottomRow
       );
     } catch (err) {
       root.replaceChildren(h('p', { class: 'empty-state', text: `Failed to load dashboard: ${err.message}` }));
@@ -418,15 +538,16 @@
   /* =========================================================================
      4. VIEW: EVENTS MANAGEMENT
      ========================================================================= */
-  async function viewEvents(root) {
+  async function viewEvents(root, extraAction = null) {
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
           h('h1', {}, svgIcon('events', 24), 'Events Management'),
           h('p', { text: 'Create, edit, publish, and delete events appearing on the public website.' })
         ),
         h('div', { class: 'topbar-actions' },
-          h('button', { class: 'btn solid sm', onclick: () => openEventEditorModal(null, () => viewEvents(root)) }, svgIcon('plus', 14), 'Add New Event')
+          h('button', { class: 'btn solid sm', onclick: () => openEventEditorModal(null, () => viewEvents(root)) }, svgIcon('plus', 14), 'Add Event')
         )
       ),
       h('p', { class: 'empty-state', text: 'Loading events…' })
@@ -488,7 +609,7 @@
               return h('tr', {},
                 h('td', { style: 'font-weight:600;' },
                   h('div', { style: 'color:var(--white);', text: ev.title }),
-                  ev.featured ? h('span', { class: 'badge amber', style: 'margin-top:2px;', text: 'FEATURED' }) : null
+                  ev.featured ? h('span', { class: 'badge amber', style: 'margin-top:2px;font-size:.65rem;', text: 'FEATURED' }) : null
                 ),
                 h('td', {}, h('span', { class: 'badge green', text: ev.category || 'EVENT' })),
                 h('td', {},
@@ -559,13 +680,14 @@
     );
 
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
           h('h1', {}, svgIcon('events', 24), `Events Management (${events.length})`),
           h('p', { text: 'Create, edit, publish, and delete events appearing on the public website.' })
         ),
         h('div', { class: 'topbar-actions' },
-          h('button', { class: 'btn solid sm', onclick: () => openEventEditorModal(null, () => viewEvents(root)) }, svgIcon('plus', 14), 'Add New Event')
+          h('button', { class: 'btn solid sm', onclick: () => openEventEditorModal(null, () => viewEvents(root)) }, svgIcon('plus', 14), 'Add Event')
         )
       ),
       toolbar,
@@ -573,6 +695,11 @@
     );
 
     drawTable();
+
+    // If navigated from Quick Actions with ADD_EVENT trigger
+    if (extraAction === 'ADD_EVENT') {
+      openEventEditorModal(null, () => viewEvents(root));
+    }
   }
 
   /* =========================================================================
@@ -599,14 +726,14 @@
     let posterUrl = initial.poster || '';
 
     // Form inputs
-    const titleInp = h('input', { name: 'title', required: true, value: initial.title || '', placeholder: 'e.g. PROMPT OPS-2K26' });
+    const titleInp = h('input', { name: 'title', required: true, value: initial.title || '', placeholder: 'e.g. TECHVERSE 2026' });
     const catInp = h('input', { name: 'category', required: true, value: initial.category || 'WORKSHOP', placeholder: 'WORKSHOP / COMPETITION / TALK' });
     const dateInp = h('input', { name: 'event_date', type: 'date', required: true, value: initial.event_date || '' });
     const timeInp = h('input', { name: 'event_time', value: initial.event_time || '', placeholder: 'e.g. 09:30 AM - 04:30 PM' });
-    const venueInp = h('input', { name: 'venue', value: initial.venue || '', placeholder: 'e.g. CSE Seminar Hall' });
+    const venueInp = h('input', { name: 'venue', value: initial.venue || '', placeholder: 'e.g. Kalam Auditorium, SJEC' });
     const regLinkInp = h('input', { name: 'reg_link', type: 'url', value: initial.reg_link || '', placeholder: 'https://forms.gle/...' });
     const summaryInp = h('textarea', { name: 'summary', rows: 3, required: true, placeholder: 'Brief 1-2 sentence overview for the event card…' }, initial.summary || '');
-    const bodyInp = h('textarea', { name: 'body', rows: 6, placeholder: 'Detailed description (blank line between paragraphs)…' }, (initial.body || []).join('\n\n'));
+    const bodyInp = h('textarea', { name: 'body', rows: 5, placeholder: 'Detailed description (paragraphs separated by blank line)…' }, (initial.body || []).join('\n\n'));
 
     const featuredCheck = h('input', { type: 'checkbox', class: 'switch-input', checked: !!initial.featured });
     const publishedCheck = h('input', { type: 'checkbox', class: 'switch-input', checked: initial.published !== false });
@@ -627,7 +754,7 @@
           )
         );
       } else {
-        posterPreview.replaceChildren(h('span', { style: 'font-size:.74rem;color:var(--text-dim);', text: 'No main poster set.' }));
+        posterPreview.replaceChildren(h('span', { style: 'font-size:.74rem;color:var(--text-dim);', text: 'No main poster image selected.' }));
       }
     }
     renderPosterPreview();
@@ -679,9 +806,9 @@
       field('Registration Link (Optional)', regLinkInp, 'External URL for sign-ups'),
       field('Card Short Summary', summaryInp, 'Visible on the main grid card'),
       field('Full Event Description', bodyInp, 'Separated by blank lines'),
-      
+
       // Main Poster Upload
-      h('div', { class: 'panel-card', style: 'padding:1rem;margin-bottom:1.2rem;' },
+      h('div', { style: 'background:rgba(0,255,102,0.03);border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:1.2rem;' },
         h('h4', { style: 'font-size:.9rem;color:var(--white);margin-bottom:.4rem;', text: 'Main Poster / Banner' }),
         h('input', {
           type: 'file',
@@ -700,7 +827,7 @@
       ),
 
       // Multiple Gallery Photos Upload
-      h('div', { class: 'panel-card', style: 'padding:1rem;margin-bottom:1.2rem;' },
+      h('div', { style: 'background:rgba(0,255,102,0.03);border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:1.2rem;' },
         h('h4', { style: 'font-size:.9rem;color:var(--white);margin-bottom:.4rem;', text: 'Event Photo Gallery' }),
         h('p', { style: 'font-size:.75rem;color:var(--text-dim);margin-bottom:.8rem;', text: 'Upload multiple photos to enable the cyber cycling HUD gallery slider on the card.' }),
         h('input', {
@@ -729,7 +856,7 @@
         h('label', { class: 'switch-label' },
           featuredCheck,
           h('span', { class: 'switch-slider' }),
-          h('span', { text: 'Featured on Homepage' })
+          h('span', { text: 'Featured Event' })
         ),
         h('label', { class: 'switch-label' },
           publishedCheck,
@@ -782,13 +909,11 @@
 
         if (onComplete) onComplete();
       },
-      isEdit ? 'Save Event Changes' : 'Create & Publish Event'
+      isEdit ? 'Save Changes' : 'Create Event'
     );
   }
 
-  /* =========================================================================
-     6. EVENT PREVIEW MODAL
-     ========================================================================= */
+  /* ---------------- Event Preview Modal ---------------- */
   function previewEventModal(ev) {
     const gallery = ev.gallery || [];
     const previewBox = h('div', {},
@@ -812,14 +937,15 @@
       ) : null
     );
 
-    showModal(`Live Preview: ${ev.title}`, previewBox, null);
+    showModal(`Preview: ${ev.title}`, previewBox, null);
   }
 
   /* =========================================================================
-     7. VIEW: REGISTRATIONS MANAGEMENT
+     6. VIEW: REGISTRATIONS MANAGEMENT
      ========================================================================= */
   async function viewRegistrations(root) {
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
           h('h1', {}, svgIcon('registrations', 24), 'Registration Management'),
@@ -829,7 +955,7 @@
           h('button', { class: 'btn solid sm', onclick: () => openAddRegistrationModal(() => viewRegistrations(root)) }, svgIcon('plus', 14), 'Add Registration')
         )
       ),
-      h('p', { class: 'empty-state', text: 'Loading applications…' })
+      h('p', { class: 'empty-state', text: 'Loading registrations…' })
     );
 
     const rows = await api('/admin/join-requests');
@@ -885,17 +1011,15 @@
               h('th', { text: 'Date' }),
               h('th', { text: 'Applicant' }),
               h('th', { text: 'USN / Year' }),
-              h('th', { text: 'Focus Area' }),
+              h('th', { text: 'Interest' }),
               h('th', { text: 'Status' }),
               h('th', { text: 'Actions', style: 'text-align:right;' })
             )
           ),
           h('tbody', {},
             filtered.map((r) => {
-              const statusColor = r.status === 'accepted' ? 'green' : (r.status === 'rejected' ? 'red' : (r.status === 'contacted' ? 'blue' : 'amber'));
-
               return h('tr', {},
-                h('td', { style: 'font-size:.78rem;color:var(--text-dim);', text: r.created_at.slice(0, 10) }),
+                h('td', { style: 'font-size:.78rem;color:var(--text-dim);', text: (r.created_at || '').slice(0, 10) }),
                 h('td', {},
                   h('div', { style: 'font-weight:600;color:var(--white);', text: r.name }),
                   h('a', { href: `mailto:${r.email}`, style: 'font-size:.76rem;', text: r.email })
@@ -914,7 +1038,7 @@
                       const newStatus = e.target.value;
                       await api(`/admin/join-requests/${r.id}`, { method: 'PATCH', body: { status: newStatus } });
                       r.status = newStatus;
-                      toast(`Registration status updated to ${newStatus}`);
+                      toast(`Status updated to ${newStatus}`);
                     })
                   }, statuses.map((s) => h('option', { value: s, text: s.toUpperCase(), selected: s === r.status })))
                 ),
@@ -927,7 +1051,7 @@
                     }, svgIcon('eye', 14)),
                     h('button', {
                       class: 'btn danger xs',
-                      title: 'Delete Application',
+                      title: 'Delete Registration',
                       onclick: () => {
                         if (confirm(`Delete registration for "${r.name}"?`)) {
                           guard(async () => {
@@ -962,6 +1086,7 @@
     );
 
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
           h('h1', {}, svgIcon('registrations', 24), `Registrations (${rows.length})`),
@@ -992,11 +1117,11 @@
       field('Applicant Statement / Message', h('textarea', { readonly: true, rows: 4 }, r.message || 'No statement provided.'))
     );
 
-    showModal(`Applicant Details: ${r.name}`, details, null);
+    showModal(`Applicant: ${r.name}`, details, null);
   }
 
   function openAddRegistrationModal(onComplete) {
-    const nameInp = h('input', { required: true, placeholder: 'e.g. John Doe' });
+    const nameInp = h('input', { required: true, placeholder: 'Full name' });
     const emailInp = h('input', { type: 'email', required: true, placeholder: 'name@sjec.ac.in' });
     const usnInp = h('input', { placeholder: '4SO22CS000' });
     const yearInp = h('select', {},
@@ -1006,7 +1131,7 @@
       h('option', { value: '4', text: '4th Year' })
     );
     const interestInp = h('input', { placeholder: 'AI & ML / Web / Cyber / Open Source' });
-    const msgInp = h('textarea', { rows: 3, placeholder: 'Optional notes…' });
+    const msgInp = h('textarea', { rows: 3, placeholder: 'Optional statement or notes…' });
 
     const formBox = h('form', {},
       h('div', { class: 'grid2' },
@@ -1016,7 +1141,7 @@
       h('div', { class: 'grid3' },
         field('USN', usnInp),
         field('Year', yearInp),
-        field('Interest', interestInp)
+        field('Interest Track', interestInp)
       ),
       field('Message / Notes', msgInp)
     );
@@ -1044,177 +1169,11 @@
   }
 
   /* =========================================================================
-     8. VIEW: MEMBERS / LEADERSHIP MANAGEMENT
-     ========================================================================= */
-  async function viewMembers(root) {
-    root.replaceChildren(
-      h('div', { class: 'admin-topbar' },
-        h('div', { class: 'page-heading-group' },
-          h('h1', {}, svgIcon('members', 24), 'Members & Leadership'),
-          h('p', { text: 'Manage club officers, coordinators, faculty advisors, and executive team.' })
-        ),
-        h('div', { class: 'topbar-actions' },
-          h('button', { class: 'btn solid sm', onclick: () => openMemberEditorModal(null, () => viewMembers(root)) }, svgIcon('plus', 14), 'Add Member')
-        )
-      ),
-      h('p', { class: 'empty-state', text: 'Loading leadership roster…' })
-    );
-
-    const members = await api('/leadership');
-
-    const tableWrap = h('div', { class: 'table-container' });
-
-    tableWrap.replaceChildren(
-      h('table', {},
-        h('thead', {},
-          h('tr', {},
-            h('th', { text: 'Photo' }),
-            h('th', { text: 'Member Name' }),
-            h('th', { text: 'Role / Designation' }),
-            h('th', { text: 'Social Links' }),
-            h('th', { text: 'Display Order' }),
-            h('th', { text: 'Actions', style: 'text-align:right;' })
-          )
-        ),
-        h('tbody', {},
-          members.map((m) => h('tr', {},
-            h('td', {},
-              m.image
-                ? h('img', { src: m.image, alt: m.name, style: 'width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid var(--line);' })
-                : h('div', { style: 'width:42px;height:42px;border-radius:50%;background:rgba(0,255,102,0.1);border:1px solid var(--line);display:grid;place-items:center;font-size:.75rem;color:var(--g);' }, m.name.slice(0, 2).toUpperCase())
-            ),
-            h('td', { style: 'font-weight:600;color:var(--white);', text: m.name }),
-            h('td', {}, h('span', { class: 'badge green', text: m.role })),
-            h('td', {},
-              h('div', { style: 'display:flex;gap:.5rem;' },
-                m.github ? h('a', { href: m.github, target: '_blank', text: 'GitHub ↗' }) : null,
-                m.linkedin ? h('a', { href: m.linkedin, target: '_blank', text: 'LinkedIn ↗' }) : null
-              )
-            ),
-            h('td', { text: String(m.sort_order ?? 0) }),
-            h('td', { style: 'text-align:right;' },
-              h('div', { style: 'display:inline-flex;gap:.4rem;' },
-                h('button', {
-                  class: 'btn ghost xs',
-                  onclick: () => openMemberEditorModal(m, () => viewMembers(root))
-                }, svgIcon('edit', 14)),
-                h('button', {
-                  class: 'btn danger xs',
-                  onclick: () => {
-                    if (confirm(`Remove member "${m.name}"?`)) {
-                      guard(async () => {
-                        await api('/admin/leadership/' + m.id, { method: 'DELETE' });
-                        toast('Member removed');
-                        viewMembers(root);
-                      })();
-                    }
-                  }
-                }, svgIcon('trash', 14))
-              )
-            )
-          ))
-        )
-      )
-    );
-
-    root.replaceChildren(
-      h('div', { class: 'admin-topbar' },
-        h('div', { class: 'page-heading-group' },
-          h('h1', {}, svgIcon('members', 24), `Members & Leadership (${members.length})`),
-          h('p', { text: 'Manage club officers, coordinators, faculty advisors, and executive team.' })
-        ),
-        h('div', { class: 'topbar-actions' },
-          h('button', { class: 'btn solid sm', onclick: () => openMemberEditorModal(null, () => viewMembers(root)) }, svgIcon('plus', 14), 'Add Member')
-        )
-      ),
-      tableWrap
-    );
-  }
-
-  function openMemberEditorModal(member = null, onComplete) {
-    const isEdit = !!member;
-    const initial = member || { name: '', role: '', image: '', github: '', linkedin: '', sort_order: 0 };
-    let photoUrl = initial.image || '';
-
-    const nameInp = h('input', { required: true, value: initial.name || '', placeholder: 'Full Name' });
-    const roleInp = h('input', { required: true, value: initial.role || '', placeholder: 'e.g. President / Vice President' });
-    const ghInp = h('input', { type: 'url', value: initial.github || '', placeholder: 'https://github.com/...' });
-    const liInp = h('input', { type: 'url', value: initial.linkedin || '', placeholder: 'https://linkedin.com/in/...' });
-    const orderInp = h('input', { type: 'number', value: String(initial.sort_order ?? 0) });
-
-    const photoPreview = h('div', { style: 'margin-top:.6rem;' });
-    function renderPhoto() {
-      if (photoUrl) {
-        photoPreview.replaceChildren(
-          h('img', { src: photoUrl, alt: '', style: 'width:80px;height:80px;border-radius:50%;object-fit:cover;border:1px solid var(--g);' })
-        );
-      } else {
-        photoPreview.replaceChildren(h('span', { style: 'font-size:.74rem;color:var(--text-dim);', text: 'No photo uploaded.' }));
-      }
-    }
-    renderPhoto();
-
-    const formBox = h('form', {},
-      h('div', { class: 'grid2' },
-        field('Name', nameInp),
-        field('Role', roleInp)
-      ),
-      h('div', { class: 'grid2' },
-        field('GitHub Profile', ghInp),
-        field('LinkedIn Profile', liInp)
-      ),
-      field('Display Order (Lower = First)', orderInp),
-      h('div', { style: 'margin-top:1rem;' },
-        h('label', {}, 'Member Photo (Portrait works best)',
-          h('input', {
-            type: 'file',
-            accept: 'image/jpeg,image/png,image/webp',
-            onchange: guard(async (e) => {
-              const file = e.target.files[0];
-              if (file) {
-                toast('Uploading photo…');
-                photoUrl = await uploadFile(file);
-                renderPhoto();
-                toast('Photo uploaded successfully');
-              }
-            })
-          })
-        ),
-        photoPreview
-      )
-    );
-
-    showModal(isEdit ? `Edit Member: ${initial.name}` : 'Add New Member', formBox, async () => {
-      const name = nameInp.value.trim();
-      const role = roleInp.value.trim();
-      if (!name || !role) throw new Error('Name and Role are required.');
-
-      const payload = {
-        name,
-        role,
-        image: photoUrl || null,
-        github: ghInp.value.trim() || null,
-        linkedin: liInp.value.trim() || null,
-        sort_order: parseInt(orderInp.value, 10) || 0
-      };
-
-      if (isEdit) {
-        await api(`/admin/leadership/${initial.id}`, { method: 'PUT', body: payload });
-        toast('Member updated');
-      } else {
-        await api('/admin/leadership', { method: 'POST', body: payload });
-        toast('Member added');
-      }
-
-      if (onComplete) onComplete();
-    }, isEdit ? 'Save Changes' : 'Add Member');
-  }
-
-  /* =========================================================================
-     9. VIEW: CONTENT MANAGEMENT
+     7. VIEW: CONTENT MANAGEMENT
      ========================================================================= */
   async function viewContent(root) {
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
           h('h1', {}, svgIcon('content', 24), 'Website Content Management'),
@@ -1259,26 +1218,26 @@
         saveBtn.disabled = false;
       })
     },
-      h('div', { class: 'panel-card' },
-        h('h3', { class: 'panel-card-title', style: 'margin-bottom:1.2rem;', text: 'Homepage Hero & Tagline' }),
-        field('Hero Subtitle / Tagline', heroSubInp, 'Displayed prominently beneath the CIPHER title')
+      h('div', { class: 'clean-panel', style: 'margin-bottom:1.4rem;' },
+        h('h3', { class: 'clean-panel-title', style: 'margin-bottom:1.2rem;', text: 'Homepage Hero & Tagline' }),
+        field('Hero Subtitle / Tagline', heroSubInp, 'Displayed beneath the CIPHER title on homepage')
       ),
-      h('div', { class: 'panel-card' },
-        h('h3', { class: 'panel-card-title', style: 'margin-bottom:1.2rem;', text: 'About CIPHER Section' }),
+      h('div', { class: 'clean-panel', style: 'margin-bottom:1.4rem;' },
+        h('h3', { class: 'clean-panel-title', style: 'margin-bottom:1.2rem;', text: 'About CIPHER Section' }),
         field('Section Headline', aboutTitleInp),
         field('About Description Text', aboutTextInp, 'Describes the vision, mission, and legacy of CIPHER')
       ),
-      h('div', { class: 'panel-card' },
-        h('h3', { class: 'panel-card-title', style: 'margin-bottom:1.2rem;', text: 'Announcement Broadcast Banner' }),
-        h('label', { class: 'switch-label' },
+      h('div', { class: 'clean-panel', style: 'margin-bottom:1.4rem;' },
+        h('h3', { class: 'clean-panel-title', style: 'margin-bottom:1.2rem;', text: 'Announcement Broadcast Banner' }),
+        h('label', { class: 'switch-label', style: 'margin-bottom:1rem;' },
           announceToggle,
           h('span', { class: 'switch-slider' }),
           h('span', { text: 'Enable Top Announcement Banner' })
         ),
         field('Announcement Message', announceTextInp)
       ),
-      h('div', { class: 'panel-card' },
-        h('h3', { class: 'panel-card-title', style: 'margin-bottom:1.2rem;', text: 'Contact & Campus Address' }),
+      h('div', { class: 'clean-panel', style: 'margin-bottom:1.4rem;' },
+        h('h3', { class: 'clean-panel-title', style: 'margin-bottom:1.2rem;', text: 'Contact & Campus Address' }),
         h('div', { class: 'grid2' },
           field('Official Contact Email', contactEmailInp),
           field('Campus Location', venueInp)
@@ -1288,6 +1247,7 @@
     );
 
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
           h('h1', {}, svgIcon('content', 24), 'Website Content Management'),
@@ -1299,14 +1259,15 @@
   }
 
   /* =========================================================================
-     10. VIEW: SETTINGS & AUDIT LOGS
+     8. VIEW: SETTINGS & AUDIT LOGS
      ========================================================================= */
   async function viewSettings(root) {
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
-          h('h1', {}, svgIcon('settings', 24), 'System Settings & Audit Log'),
-          h('p', { text: 'Admin security, access controls, credentials management, and historical audit trail.' })
+          h('h1', {}, svgIcon('settings', 24), 'Platform Settings & Audit Log'),
+          h('p', { text: 'Admin security, credentials management, database diagnostics, and historical audit trail.' })
         )
       ),
       h('p', { class: 'empty-state', text: 'Loading system diagnostics…' })
@@ -1321,7 +1282,8 @@
     const passStatus = h('div', { class: 'login-status-box' });
 
     const passForm = h('form', {
-      class: 'panel-card',
+      class: 'clean-panel',
+      style: 'margin-bottom:1.5rem;',
       onsubmit: guard(async (e) => {
         e.preventDefault();
         passStatus.className = 'login-status-box';
@@ -1340,7 +1302,7 @@
 
         await api('/admin/change-password', {
           method: 'POST',
-          body: { oldPassword: oldPassInp.value, newPassword: newPassInp.value }
+          body: { current_password: oldPassInp.value, new_password: newPassInp.value }
         });
 
         passStatus.className = 'login-status-box ok';
@@ -1351,7 +1313,7 @@
         toast('Password changed successfully');
       })
     },
-      h('h3', { class: 'panel-card-title', style: 'margin-bottom:1rem;', text: 'Change Admin Password' }),
+      h('h3', { class: 'clean-panel-title', style: 'margin-bottom:1.2rem;', text: 'Change Admin Password' }),
       field('Current Password', oldPassInp),
       h('div', { class: 'grid2' },
         field('New Password', newPassInp),
@@ -1375,26 +1337,27 @@
         h('tbody', {},
           logs.map((log) => h('tr', {},
             h('td', { style: 'font-size:.76rem;color:var(--text-dim);', text: new Date(log.created_at).toLocaleString() }),
-            h('td', {}, h('span', { class: 'badge green', text: log.action })),
-            h('td', { style: 'color:var(--white);', text: log.description || '—' }),
-            h('td', { style: 'font-size:.78rem;color:var(--g-dim);', text: log.actor || 'System' })
+            h('td', {}, h('span', { class: 'badge green', text: log.action_type || log.action || 'ACTIVITY' })),
+            h('td', { style: 'color:var(--white);', text: log.details || log.description || log.action_type || '—' }),
+            h('td', { style: 'font-size:.78rem;color:var(--g-dim);', text: log.username || log.actor || 'Admin' })
           ))
         )
       )
     );
 
-    const logPanel = h('div', { class: 'panel-card' },
-      h('div', { class: 'panel-card-header' },
-        h('h3', { class: 'panel-card-title', text: 'Full Audit Activity Log' })
+    const logPanel = h('div', { class: 'clean-panel' },
+      h('div', { class: 'clean-panel-header' },
+        h('h3', { class: 'clean-panel-title', text: 'Full Audit Activity Log' })
       ),
       logs.length ? logTable : h('p', { class: 'empty-state', text: 'No logs recorded yet.' })
     );
 
     root.replaceChildren(
+      renderHeaderStrip(),
       h('div', { class: 'admin-topbar' },
         h('div', { class: 'page-heading-group' },
-          h('h1', {}, svgIcon('settings', 24), 'System Settings & Audit Log'),
-          h('p', { text: 'Admin security, access controls, credentials management, and historical audit trail.' })
+          h('h1', {}, svgIcon('settings', 24), 'Platform Settings & Audit Log'),
+          h('p', { text: 'Admin security, credentials management, database diagnostics, and historical audit trail.' })
         )
       ),
       passForm,
@@ -1402,6 +1365,6 @@
     );
   }
 
-  /* ---------------- Boot ---------------- */
+  /* ---------------- Initialize ---------------- */
   token ? renderShell('Dashboard') : renderLogin();
 })();

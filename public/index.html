@@ -65,13 +65,67 @@
     <section id="about" class="section about">
       <div class="about__text">
         <p class="tag">// about</p>
-        <h2 class="glow">Who we are</h2>
-        <p><strong>CIPHER</strong> is the student association of the Department of Computer Science &amp; Engineering. It serves as a platform for students to nurture their technical and interpersonal skills through innovative and collaborative activities. The association strives to bridge the gap between academic knowledge and practical application, fostering a community of aspiring professionals dedicated to excellence in computing.</p>
+        <h2 class="about__heading glow" id="about-title" data-text="Who we are">
+          Who we are
+          <span class="heading__scanline" aria-hidden="true"></span>
+        </h2>
+        <p id="about-lead"><strong>CIPHER</strong> is the student association of the Department of Computer Science &amp; Engineering. It serves as a platform for students to nurture their technical and interpersonal skills through innovative and collaborative activities. The association strives to bridge the gap between academic knowledge and practical application, fostering a community of aspiring professionals dedicated to excellence in computing.</p>
       </div>
-      <div class="about__collage" aria-hidden="true">
-        <div class="tile t1"></div><div class="tile t2"></div><div class="tile t3"></div>
-        <div class="tile t4"></div><div class="tile t5"></div>
-        <span class="about__word">CIPHER</span>
+      <div class="about__collage" id="about-collage" aria-label="CIPHER activities visual gallery">
+        <div class="about__collage-grid" aria-hidden="true"></div>
+        <div class="about__collage-glow" aria-hidden="true"></div>
+        <div class="about__scanbeam" aria-hidden="true"></div>
+        
+        <div class="tile t1" data-tile="1" tabindex="0" role="img" aria-label="Hands-on computing session">
+          <img src="img/events/prompt-ops-2k26/02.jpg" alt="Hands-on computing session" class="tile__img" loading="lazy">
+          <span class="tile__corner corner--tl" aria-hidden="true"></span>
+          <span class="tile__corner corner--tr" aria-hidden="true"></span>
+          <span class="tile__corner corner--bl" aria-hidden="true"></span>
+          <span class="tile__corner corner--br" aria-hidden="true"></span>
+          <div class="tile__scanline" aria-hidden="true"></div>
+        </div>
+
+        <div class="tile t2" data-tile="2" tabindex="0" role="img" aria-label="Technical discussion and collaboration">
+          <img src="img/events/prompt-ops-2k26/03.jpg" alt="Technical discussion and collaboration" class="tile__img" loading="lazy">
+          <span class="tile__corner corner--tl" aria-hidden="true"></span>
+          <span class="tile__corner corner--tr" aria-hidden="true"></span>
+          <span class="tile__corner corner--bl" aria-hidden="true"></span>
+          <span class="tile__corner corner--br" aria-hidden="true"></span>
+          <div class="tile__scanline" aria-hidden="true"></div>
+        </div>
+
+        <div class="tile t3" data-tile="3" tabindex="0" role="img" aria-label="Department gala and flagship event">
+          <img src="img/events/lumiere-the-gala/01.jpg" alt="Department gala and flagship event" class="tile__img" loading="lazy">
+          <span class="tile__corner corner--tl" aria-hidden="true"></span>
+          <span class="tile__corner corner--tr" aria-hidden="true"></span>
+          <span class="tile__corner corner--bl" aria-hidden="true"></span>
+          <span class="tile__corner corner--br" aria-hidden="true"></span>
+          <div class="tile__scanline" aria-hidden="true"></div>
+        </div>
+
+        <div class="tile t4" data-tile="4" tabindex="0" role="img" aria-label="CIPHER student organizers and faculty team">
+          <img src="img/events/prompt-ops-2k26/01.jpg" alt="CIPHER student organizers and faculty team" class="tile__img" loading="lazy">
+          <span class="tile__corner corner--tl" aria-hidden="true"></span>
+          <span class="tile__corner corner--tr" aria-hidden="true"></span>
+          <span class="tile__corner corner--bl" aria-hidden="true"></span>
+          <span class="tile__corner corner--br" aria-hidden="true"></span>
+          <div class="tile__scanline" aria-hidden="true"></div>
+        </div>
+
+        <div class="tile t5" data-tile="5" tabindex="0" role="img" aria-label="Students collaborating on lab project">
+          <img src="img/events/prompt-ops-2k26/04.jpg" alt="Students collaborating on lab project" class="tile__img" loading="lazy">
+          <span class="tile__corner corner--tl" aria-hidden="true"></span>
+          <span class="tile__corner corner--tr" aria-hidden="true"></span>
+          <span class="tile__corner corner--bl" aria-hidden="true"></span>
+          <span class="tile__corner corner--br" aria-hidden="true"></span>
+          <div class="tile__scanline" aria-hidden="true"></div>
+        </div>
+
+        <div class="about__word-wrap" aria-hidden="true">
+          <span class="about__word-halo" aria-hidden="true"></span>
+          <span class="about__word" data-text="CIPHER">CIPHER</span>
+          <span class="about__word-sweep" aria-hidden="true"></span>
+        </div>
       </div>
     </section>
 
@@ -530,12 +584,16 @@
     </section>
 
     <!-- ARCHIVE -->
-    <section class="section">
-      <p class="tag">// archive</p>
-      <h2 class="glow">Activities</h2>
+    <section class="section archive-sec" id="archive-section">
+      <p class="tag archive-tag">// archive <span class="archive-tag__cursor" aria-hidden="true">_</span></p>
+      <h2 class="glow archive-heading">Activities</h2>
       <p class="lead">Hands-on workshops, industrial visits, and technical sessions run by the Cipher Association — spanning AI, blockchain, research tooling, and career prep.</p>
       <label class="search"><span class="sr">Search activities</span><input id="archive-search" type="search" placeholder="Search activities…" autocomplete="off"></label>
-      <ol class="archive" id="archive"></ol>
+      <div class="archive-wrap">
+        <div class="archive-bg-grid" aria-hidden="true"></div>
+        <div class="archive-bg-glow" aria-hidden="true"></div>
+        <ol class="archive" id="archive"></ol>
+      </div>
       <p class="empty-msg" id="archive-empty" hidden>No activities match your search.</p>
     </section>
 

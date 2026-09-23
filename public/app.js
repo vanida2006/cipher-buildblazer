@@ -894,11 +894,24 @@
       const draw = () => {
         const q = input.value.trim().toLowerCase();
         const shown = list.filter((a) => a.title.toLowerCase().includes(q));
-        ol.replaceChildren(...shown.map((a) => h('li', {}, a.url ? h('a', { href: a.url, rel: 'noopener', text: a.title }) : a.title)));
+        ol.replaceChildren(...shown.map((a, idx) => {
+          const numStr = String(idx + 1).padStart(2, '0');
+          const li = h('li', {
+            class: 'archive__item',
+            style: `--idx: ${idx};`
+          });
+          const numEl = h('span', { class: 'archive__num', text: numStr });
+          const textEl = a.url
+            ? h('a', { href: a.url, class: 'archive__link', rel: 'noopener', text: a.title })
+            : h('span', { class: 'archive__text', text: a.title });
+          const scanEl = h('span', { class: 'archive__scanline', 'aria-hidden': 'true' });
+          li.append(numEl, textEl, scanEl);
+          return li;
+        }));
         empty.hidden = shown.length > 0;
       };
       input.addEventListener('input', draw); draw();
-    } catch { ol.replaceChildren(h('li', { text: 'Could not load activities.' })); }
+    } catch { ol.replaceChildren(h('li', { class: 'archive__item', text: 'Could not load activities.' })); }
   }
 
   /* ---------------- join form ---------------- */
@@ -1074,6 +1087,140 @@
     checkSession();
   }
 
+  /* ---------------- about section & collage interaction ---------------- */
+  function initAboutCollage() {
+    const aboutSec = $('#about');
+    const collage = $('#about-collage');
+    const heading = $('.about__heading');
+    const cipherWord = $('.about__word-wrap');
+    if (!aboutSec) return;
+
+    // Viewport entrance observer for "WHO WE ARE" & About Section
+    const aboutObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          aboutSec.classList.add('in-view');
+          if (heading) heading.classList.add('in-view');
+        }
+      });
+    }, { rootMargin: '0px 0px -60px 0px', threshold: 0.15 });
+
+    aboutObserver.observe(aboutSec);
+
+    // Interactive collage motion & tile focus effects
+    if (collage) {
+      const tiles = Array.from(collage.querySelectorAll('.tile'));
+
+      // Micro parallax & smooth speed control
+      let collageRaf = null;
+      let targetRx = 0, targetRy = 0;
+      let currentRx = 0, currentRy = 0;
+      let targetAnimSpeed = 1.0;
+      let currentAnimSpeed = 1.0;
+
+      const updateCollageMotion = () => {
+        // Smooth tilt interpolation
+        currentRx += (targetRx - currentRx) * 0.1;
+        currentRy += (targetRy - currentRy) * 0.1;
+        collage.style.transform = `perspective(1000px) rotateX(${currentRx.toFixed(2)}deg) rotateY(${currentRy.toFixed(2)}deg)`;
+
+        // Smooth animation speed interpolation (1.0 -> 2.0 -> 1.0)
+        currentAnimSpeed += (targetAnimSpeed - currentAnimSpeed) * 0.08;
+        if (Math.abs(targetAnimSpeed - currentAnimSpeed) < 0.005) {
+          currentAnimSpeed = targetAnimSpeed;
+        }
+        collage.style.setProperty('--anim-speed', currentAnimSpeed.toFixed(3));
+
+        const isTiltActive = Math.abs(targetRx - currentRx) > 0.02 || Math.abs(targetRy - currentRy) > 0.02;
+        const isSpeedActive = currentAnimSpeed !== targetAnimSpeed;
+
+        if (isTiltActive || isSpeedActive) {
+          collageRaf = requestAnimationFrame(updateCollageMotion);
+        } else {
+          collageRaf = null;
+        }
+      };
+
+      const setSpeedTarget = (speed) => {
+        targetAnimSpeed = speed;
+        if (!collageRaf) {
+          collageRaf = requestAnimationFrame(updateCollageMotion);
+        }
+      };
+
+      // Hover on collage reveals images and smoothly transitions animation speed from 1 to 2
+      collage.addEventListener('pointerenter', () => {
+        collage.classList.add('show-images');
+        setSpeedTarget(2.0);
+      });
+
+      if (!reduceMotion) {
+        collage.addEventListener('pointermove', (e) => {
+          const rect = collage.getBoundingClientRect();
+          const normX = (e.clientX - rect.left) / rect.width - 0.5;
+          const normY = (e.clientY - rect.top) / rect.height - 0.5;
+          targetRy = normX * 6; // Max 3 deg Y-rotation
+          targetRx = -normY * 6; // Max 3 deg X-rotation
+          if (!collageRaf) {
+            collageRaf = requestAnimationFrame(updateCollageMotion);
+          }
+        });
+      }
+
+      collage.addEventListener('pointerleave', () => {
+        collage.classList.remove('show-images');
+        collage.classList.remove('has-tile-hover');
+        targetRx = 0;
+        targetRy = 0;
+        setSpeedTarget(1.0);
+      });
+
+      // Direct hover / focus on CIPHER logo
+      if (cipherWord) {
+        cipherWord.addEventListener('pointerenter', () => {
+          collage.classList.add('show-images');
+          setSpeedTarget(2.0);
+        });
+        cipherWord.addEventListener('pointerleave', () => {
+          if (!collage.matches(':hover')) {
+            setSpeedTarget(1.0);
+          }
+        });
+        cipherWord.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const willShow = collage.classList.toggle('show-images');
+          setSpeedTarget(willShow ? 2.0 : 1.0);
+        });
+      }
+
+      // Individual tile hover & focus dimming
+      tiles.forEach((tile) => {
+        tile.addEventListener('pointerenter', () => {
+          collage.classList.add('show-images');
+          collage.classList.add('has-tile-hover');
+          tile.classList.add('is-hovered');
+          setSpeedTarget(2.0);
+        });
+        tile.addEventListener('pointerleave', () => {
+          tile.classList.remove('is-hovered');
+          if (!tiles.some(t => t.matches(':hover'))) {
+            collage.classList.remove('has-tile-hover');
+          }
+        });
+        tile.addEventListener('focus', () => {
+          collage.classList.add('show-images');
+          collage.classList.add('has-tile-hover');
+          tile.classList.add('is-hovered');
+        });
+        tile.addEventListener('blur', () => {
+          tile.classList.remove('is-hovered');
+          collage.classList.remove('has-tile-hover');
+          collage.classList.remove('show-images');
+        });
+      });
+    }
+  }
+
   /* ---------------- interactive pillars ---------------- */
   function initPillars() {
     const pillars = $$('.pillar');
@@ -1199,6 +1346,7 @@
 
   /* ---------------- boot ---------------- */
   runIntro(); startWaves(); startHeroDots();
+  initAboutCollage();
   initPillars();
   loadLeaders(); loadEvents(); loadArchive(); loadContent();
   initAdminSection();

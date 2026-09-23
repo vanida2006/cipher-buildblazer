@@ -154,43 +154,104 @@ admin.get('/me', (req, res) => {
 });
 
 // Change Password
-admin.post('/change-password', validate(z.object({
-  current_password: z.string().min(1),
-  new_password: z.string().min(6, 'New password must be at least 6 characters'),
-})), (req, res) => {
+admin.post('/change-password', (req, res) => {
+  const current_pass = req.body.current_password || req.body.oldPassword || '';
+  const new_pass = req.body.new_password || req.body.newPassword || '';
+
+  if (!current_pass || !new_pass || new_pass.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+  }
+
   const currentAdmin = db.prepare('SELECT * FROM admins WHERE id = ?').get(req.admin.sub);
   if (!currentAdmin) return res.status(404).json({ error: 'Admin account not found' });
 
-  const isMaster = (req.body.current_password === 'cipher2026' || req.body.current_password === 'cipher2026admin');
-  const valid = bcrypt.compareSync(req.body.current_password, currentAdmin.password_hash) || isMaster;
+  const isMaster = (current_pass === 'cipher2026' || current_pass === 'cipher2026admin');
+  const valid = bcrypt.compareSync(current_pass, currentAdmin.password_hash) || isMaster;
   if (!valid) return res.status(400).json({ error: 'Incorrect current password' });
 
-  const hash = bcrypt.hashSync(req.body.new_password, 10);
+  const hash = bcrypt.hashSync(new_pass, 10);
   db.prepare('UPDATE admins SET password_hash = ? WHERE id = ?').run(hash, req.admin.sub);
   logActivity(req.admin.u, 'password_changed', 'Password updated successfully');
   res.json({ ok: true, message: 'Password updated successfully' });
 });
 
-// Dashboard Overview Stats
-admin.get('/stats', (_req, res) => {
-  const today = new Date().toISOString().slice(0, 10);
-  const totalEvents = db.prepare('SELECT COUNT(*) AS c FROM events').get().c;
-  const upcomingEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE event_date >= ?').get(today).c;
-  const publishedEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE published = 1').get().c;
-  const totalRegistrations = db.prepare('SELECT COUNT(*) AS c FROM join_requests').get().c;
-  const newRegistrations = db.prepare("SELECT COUNT(*) AS c FROM join_requests WHERE status = 'new'").get().c;
-  const totalMembers = db.prepare('SELECT COUNT(*) AS c FROM members').get().c;
-  const totalActivities = db.prepare('SELECT COUNT(*) AS c FROM activities').get().c;
+// Comprehensive Dashboard Endpoint
+admin.get('/dashboard', (_req, res) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const totalEvents = db.prepare('SELECT COUNT(*) AS c FROM events').get()?.c ?? 0;
+    const upcomingEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE event_date >= ?').get(today)?.c ?? 0;
+    const publishedEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE published = 1').get()?.c ?? 0;
+    const totalRegistrations = db.prepare('SELECT COUNT(*) AS c FROM join_requests').get()?.c ?? 0;
 
-  res.json({
-    totalEvents,
-    upcomingEvents,
-    publishedEvents,
-    totalRegistrations,
-    newRegistrations,
-    totalMembers,
-    totalActivities
-  });
+    const statsData = {
+      totalEvents,
+      totalRegistrations,
+      upcomingEvents,
+      publishedEvents
+    };
+
+    const recentLogs = db.prepare('SELECT * FROM activity_logs ORDER BY id DESC LIMIT 6').all() || [];
+    let upcomingList = db.prepare('SELECT * FROM events WHERE event_date >= ? ORDER BY event_date ASC LIMIT 4').all().map(parseEvent);
+    if (upcomingList.length === 0) {
+      upcomingList = db.prepare('SELECT * FROM events ORDER BY event_date DESC LIMIT 3').all().map(parseEvent);
+    }
+
+    res.json({
+      success: true,
+      message: 'Dashboard data retrieved successfully',
+      data: statsData,
+      stats: statsData,
+      ...statsData,
+      recentActivity: recentLogs,
+      upcomingEvents: upcomingList
+    });
+  } catch (err) {
+    console.error('Error fetching dashboard statistics:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve dashboard statistics',
+      message: err.message
+    });
+  }
+});
+
+// Dashboard Overview Stats (direct endpoint)
+admin.get('/stats', (_req, res) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const totalEvents = db.prepare('SELECT COUNT(*) AS c FROM events').get()?.c ?? 0;
+    const upcomingEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE event_date >= ?').get(today)?.c ?? 0;
+    const publishedEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE published = 1').get()?.c ?? 0;
+    const totalRegistrations = db.prepare('SELECT COUNT(*) AS c FROM join_requests').get()?.c ?? 0;
+    const newRegistrations = db.prepare("SELECT COUNT(*) AS c FROM join_requests WHERE status = 'new'").get()?.c ?? 0;
+    const totalMembers = db.prepare('SELECT COUNT(*) AS c FROM members').get()?.c ?? 0;
+    const totalActivities = db.prepare('SELECT COUNT(*) AS c FROM activities').get()?.c ?? 0;
+
+    const statsData = {
+      totalEvents,
+      totalRegistrations,
+      upcomingEvents,
+      publishedEvents,
+      newRegistrations,
+      totalMembers,
+      totalActivities
+    };
+
+    res.json({
+      success: true,
+      message: 'Statistics calculated successfully',
+      data: statsData,
+      ...statsData
+    });
+  } catch (err) {
+    console.error('Error calculating stats:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to calculate statistics',
+      message: err.message
+    });
+  }
 });
 
 // Recent Activity Log
@@ -501,21 +562,25 @@ admin.get('/content', (_req, res) => {
   res.json(map);
 });
 
-admin.put('/content', validate(z.record(z.string(), z.string())), (req, res) => {
+const handleContentUpdate = (req, res) => {
   const entries = Object.entries(req.body);
   const now = new Date().toISOString();
   for (const [k, v] of entries) {
+    const strVal = typeof v === 'boolean' ? (v ? '1' : '0') : String(v ?? '');
     const exist = db.prepare('SELECT key FROM site_content WHERE key = ?').get(k);
     if (exist) {
-      db.prepare('UPDATE site_content SET value = ?, updated_at = ? WHERE key = ?').run(v, now, k);
+      db.prepare('UPDATE site_content SET value = ?, updated_at = ? WHERE key = ?').run(strVal, now, k);
     } else {
-      db.prepare('INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, ?)').run(k, v, now);
+      db.prepare('INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, ?)').run(k, strVal, now);
     }
   }
 
   logActivity(req.admin.u, 'content_updated', `Updated website content configurations (${entries.length} fields)`);
   res.json({ ok: true, message: 'Content updated successfully' });
-});
+};
+
+admin.put('/content', handleContentUpdate);
+admin.post('/content', handleContentUpdate);
 
 /* ---------- Admin File / Image Upload ---------- */
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 10 } });
