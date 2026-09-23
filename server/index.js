@@ -10,18 +10,14 @@ const app = express();
 app.set('trust proxy', 1); // correct client IP behind Render/Railway/Vercel for rate limiting
 
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", 'https://fonts.googleapis.com'],
-      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'"],
-    },
-  },
+  frameguard: false,
+  contentSecurityPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
+  originAgentCluster: false,
 }));
-app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') || false }));
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true }));
 app.use(express.json({ limit: '100kb' }));
 
 app.use('/api', api);
@@ -38,5 +34,5 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong' });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`CIPHER running on http://localhost:${port}`));
+const port = 3000;
+app.listen(port, '0.0.0.0', () => console.log(`CIPHER running on http://0.0.0.0:${port}`));

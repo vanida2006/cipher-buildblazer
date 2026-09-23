@@ -7,6 +7,13 @@
   const rnd = (n) => Math.floor(Math.random() * n);
   const mouse = { x: -999, y: -999 };
 
+  /* ---------------- safe storage ---------------- */
+  const storage = {
+    get(k) { try { return window.sessionStorage ? sessionStorage.getItem(k) : null; } catch { return null; } },
+    set(k, v) { try { if (window.sessionStorage) sessionStorage.setItem(k, v); } catch {} },
+    remove(k) { try { if (window.sessionStorage) sessionStorage.removeItem(k); } catch {} }
+  };
+
   /* ---------------- helper: create element safely ---------------- */
   function h(tag, props = {}, ...kids) {
     const el = document.createElement(tag);
@@ -23,49 +30,79 @@
 
   /* ---------------- cursor ---------------- */
   const cursor = $('#cursor');
-  addEventListener('pointermove', (e) => {
-    mouse.x = e.clientX; mouse.y = e.clientY;
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-    cursor.classList.toggle('hover', !!e.target.closest('a,button,.card,.leader,input,select,textarea'));
-  }, { passive: true });
+  if (cursor) {
+    let cursorRaf = null;
+    addEventListener('pointermove', (e) => {
+      mouse.x = e.clientX; mouse.y = e.clientY;
+      if (!cursorRaf) {
+        cursorRaf = requestAnimationFrame(() => {
+          cursor.style.left = mouse.x + 'px';
+          cursor.style.top = mouse.y + 'px';
+          cursorRaf = null;
+        });
+      }
+      cursor.classList.toggle('hover', !!e.target.closest('a,button,.card,.leader,input,select,textarea'));
+    }, { passive: true });
+  }
 
   /* ---------------- matrix rain (shared by intro) ---------------- */
   function startRain(canvas, { size = 16, fade = 0.08 } = {}) {
+    if (!canvas) return () => {};
     const ctx = canvas.getContext('2d');
-    let cols, drops, raf, w, h_;
+    if (!ctx) return () => {};
+    let cols = 0, drops = [], raf = null, w = 0, h_ = 0, active = true;
     const resize = () => {
-      w = canvas.width = innerWidth; h_ = canvas.height = innerHeight;
-      cols = Math.ceil(w / size); drops = Array.from({ length: cols }, () => rnd(-40) );
+      w = canvas.width = Math.min(innerWidth || 800, 1920);
+      h_ = canvas.height = Math.min(innerHeight || 600, 1080);
+      cols = Math.min(Math.ceil(w / size), 80);
+      drops = Array.from({ length: cols }, () => rnd(-40));
     };
-    resize(); addEventListener('resize', resize);
+    resize();
+    let rtime;
+    const onResize = () => { clearTimeout(rtime); rtime = setTimeout(resize, 100); };
+    addEventListener('resize', onResize, { passive: true });
+
     const tick = () => {
-      ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, w, h_);
+      if (!active) return;
+      ctx.fillStyle = `rgba(0,0,0,${fade})`;
+      ctx.fillRect(0, 0, w, h_);
       ctx.font = `${size}px JetBrains Mono, monospace`;
-      drops.forEach((y, i) => {
+      for (let i = 0; i < drops.length; i++) {
+        const y = drops[i];
         ctx.fillStyle = Math.random() > 0.96 ? '#c8ffd9' : '#00ff66';
         ctx.globalAlpha = 0.55;
         ctx.fillText(GLYPHS[rnd(GLYPHS.length)], i * size, y * size);
         ctx.globalAlpha = 1;
         drops[i] = y * size > h_ && Math.random() > 0.975 ? 0 : y + 1;
-      });
+      }
       raf = requestAnimationFrame(tick);
     };
-    tick();
-    return () => { cancelAnimationFrame(raf); removeEventListener('resize', resize); };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      active = false;
+      if (raf) cancelAnimationFrame(raf);
+      removeEventListener('resize', onResize);
+    };
   }
 
   /* ---------------- intro: decrypt "CIPHER" ---------------- */
   function runIntro() {
     const intro = $('#intro');
-    let seen = false;
-    try { seen = sessionStorage.getItem('cipher-intro') === '1'; } catch {}
-    if (seen || reduceMotion) { intro.remove(); document.body.classList.remove('locked'); return; }
+    if (!intro) {
+      document.body.classList.remove('locked');
+      return;
+    }
+    const seen = storage.get('cipher-intro') === '1';
+    if (seen || reduceMotion) {
+      intro.remove();
+      document.body.classList.remove('locked');
+      return;
+    }
 
     const stopRain = startRain($('#intro-rain'));
     const word = 'CIPHER';
     const box = $('#intro-word');
-    const spans = [...word].map(() => box.appendChild(h('span', { text: GLYPHS[rnd(GLYPHS.length)] })));
+    const spans = box ? [...word].map(() => box.appendChild(h('span', { text: GLYPHS[rnd(GLYPHS.length)] }))) : [];
     const t0 = performance.now();
     const scramble = setInterval(() => {
       const t = performance.now() - t0;
@@ -76,99 +113,191 @@
 
     let closed = false;
     const close = () => {
-      if (closed) return; closed = true;
+      if (closed) return;
+      closed = true;
       clearInterval(scramble);
       intro.classList.add('done');
       document.body.classList.remove('locked');
-      try { sessionStorage.setItem('cipher-intro', '1'); } catch {}
-      setTimeout(() => { stopRain(); intro.remove(); }, 900);
+      storage.set('cipher-intro', '1');
+      setTimeout(() => {
+        stopRain();
+        intro.remove();
+      }, 500);
     };
-    $('#intro-skip').addEventListener('click', close);
-    setTimeout(close, 900 + word.length * 450 + 1200);
+    const skip = $('#intro-skip');
+    if (skip) skip.addEventListener('click', close);
+    setTimeout(close, 3500);
   }
 
   /* ---------------- background contour waves ---------------- */
   function startWaves() {
-    const c = $('#waves'), ctx = c.getContext('2d');
-    let w, hgt, t = 0, running = true;
-    const resize = () => { w = c.width = innerWidth; hgt = c.height = innerHeight; };
-    resize(); addEventListener('resize', resize);
-    document.addEventListener('visibilitychange', () => { running = !document.hidden; if (running) draw(); });
+    const c = $('#waves');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    let w = 0, hgt = 0, t = 0, rafId = null, running = true;
+    const resize = () => {
+      w = c.width = Math.max(innerWidth || 800, 320);
+      hgt = c.height = Math.max(innerHeight || 600, 320);
+    };
+    resize();
+    let rtime;
+    addEventListener('resize', () => {
+      clearTimeout(rtime);
+      rtime = setTimeout(resize, 100);
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      running = !document.hidden;
+      if (running) {
+        if (!rafId) rafId = requestAnimationFrame(draw);
+      } else {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      }
+    });
+
     function draw() {
-      if (!running) return;
+      if (!running) { rafId = null; return; }
       ctx.clearRect(0, 0, w, hgt);
       ctx.lineWidth = 1;
-      const lines = 46, step = hgt / lines;
+      const lines = 18, step = hgt / lines;
       for (let i = 0; i < lines; i++) {
         const base = i * step;
         ctx.beginPath();
-        for (let x = 0; x <= w; x += 14) {
+        for (let x = 0; x <= w; x += 24) {
           const dx = x - mouse.x, dy = base - mouse.y;
-          const pull = Math.exp(-(dx * dx + dy * dy) / 42000) * 22;
+          const pull = (Math.abs(dx) < 220 && Math.abs(dy) < 220)
+            ? Math.exp(-(dx * dx + dy * dy) / 36000) * 20
+            : 0;
           const y = base
-            + Math.sin(x * 0.006 + t + i * 0.22) * 14
-            + Math.sin(x * 0.013 - t * 0.7 + i * 0.4) * 6
+            + Math.sin(x * 0.005 + t + i * 0.25) * 12
+            + Math.sin(x * 0.012 - t * 0.6 + i * 0.4) * 5
             - pull;
           x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
         }
-        ctx.strokeStyle = `rgba(0,255,102,${0.10 + 0.08 * Math.sin(i * 0.5 + t)})`;
+        ctx.strokeStyle = `rgba(0,255,102,${0.09 + 0.07 * Math.sin(i * 0.5 + t)})`;
         ctx.stroke();
       }
       t += reduceMotion ? 0 : 0.008;
-      requestAnimationFrame(draw);
+      rafId = requestAnimationFrame(draw);
     }
-    draw();
+    rafId = requestAnimationFrame(draw);
   }
 
   /* ---------------- hero: dot-matrix "CIPHER" ---------------- */
   function startHeroDots() {
-    const c = $('#hero-dots'), ctx = c.getContext('2d');
-    let pts = [], W, H, running = true;
-    const gap = () => (innerWidth < 700 ? 6 : 9);
+    const c = $('#hero-dots');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    let pts = [], W = 0, H = 0, running = true, rafId = null;
+    const gap = () => (innerWidth < 700 ? 8 : 12);
 
     function build() {
-      const dpr = Math.min(devicePixelRatio || 1, 2);
-      W = c.clientWidth; H = c.clientHeight;
-      c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const off = document.createElement('canvas'); off.width = W; off.height = H;
-      const o = off.getContext('2d');
-      let fs = H * 0.9;
-      o.font = `700 ${fs}px Lexend, sans-serif`;
-      const mw = o.measureText('CIPHER').width;
-      if (mw > W * 0.96) fs *= (W * 0.96) / mw;
-      o.font = `700 ${fs}px Lexend, sans-serif`;
-      o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillStyle = '#fff';
-      o.fillText('CIPHER', W / 2, H / 2);
-      const data = o.getImageData(0, 0, W, H).data, g = gap();
-      pts = [];
-      for (let y = 0; y < H; y += g)
-        for (let x = 0; x < W; x += g)
-          if (data[(y * W + x) * 4 + 3] > 128)
-            pts.push({ hx: x, hy: y, x: x + (Math.random() - .5) * 60, y: y + (Math.random() - .5) * 60,
-              vx: 0, vy: 0, ch: Math.random() < 0.12 ? GLYPHS[rnd(GLYPHS.length)] : null, tw: Math.random() * 6.28 });
+      W = c.clientWidth || 600;
+      H = c.clientHeight || 180;
+      if (W < 40 || H < 40) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      c.width = W * dpr;
+      c.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      try {
+        const off = document.createElement('canvas');
+        off.width = W;
+        off.height = H;
+        const o = off.getContext('2d');
+        if (!o) return;
+        let fs = H * 0.85;
+        o.font = `700 ${fs}px Lexend, sans-serif`;
+        const mw = o.measureText('CIPHER').width || 1;
+        if (mw > W * 0.94) fs *= (W * 0.94) / mw;
+        o.font = `700 ${fs}px Lexend, sans-serif`;
+        o.textAlign = 'center';
+        o.textBaseline = 'middle';
+        o.fillStyle = '#fff';
+        o.fillText('CIPHER', W / 2, H / 2);
+
+        const data = o.getImageData(0, 0, W, H).data;
+        const g = gap();
+        pts = [];
+        for (let y = 0; y < H; y += g) {
+          for (let x = 0; x < W; x += g) {
+            const idx = (y * W + x) * 4 + 3;
+            if (data[idx] > 128) {
+              pts.push({
+                hx: x, hy: y,
+                x: x + (Math.random() - 0.5) * 40,
+                y: y + (Math.random() - 0.5) * 40,
+                vx: 0, vy: 0,
+                tw: Math.random() * 6.28
+              });
+            }
+          }
+        }
+        if (pts.length > 500) {
+          pts = pts.filter((_, idx) => idx % Math.ceil(pts.length / 500) === 0);
+        }
+      } catch (err) {
+        console.warn('Hero dots build skipped:', err);
+      }
     }
 
     function frame(now) {
-      if (!running) return;
+      if (!running) { rafId = null; return; }
       ctx.clearRect(0, 0, W, H);
-      const r = c.getBoundingClientRect(), mx = mouse.x - r.left, my = mouse.y - r.top;
-      ctx.font = `${gap() + 2}px JetBrains Mono, monospace`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      for (const p of pts) {
+      const r = c.getBoundingClientRect();
+      const mx = mouse.x - r.left, my = mouse.y - r.top;
+      const dDot = gap() > 8 ? 2.5 : 2;
+
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
         const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
-        if (d2 < 9000) { const f = (1 - d2 / 9000) * 6, d = Math.sqrt(d2) || 1; p.vx += dx / d * f; p.vy += dy / d * f; }
-        p.vx += (p.hx - p.x) * 0.06; p.vy += (p.hy - p.y) * 0.06;
-        p.vx *= 0.82; p.vy *= 0.82; p.x += p.vx; p.y += p.vy;
+        if (d2 < 8100) {
+          const f = (1 - d2 / 8100) * 5;
+          const d = Math.sqrt(d2) || 1;
+          p.vx += (dx / d) * f;
+          p.vy += (dy / d) * f;
+        }
+        p.vx += (p.hx - p.x) * 0.07;
+        p.vy += (p.hy - p.y) * 0.07;
+        p.vx *= 0.82;
+        p.vy *= 0.82;
+        p.x += p.vx;
+        p.y += p.vy;
+
         const a = 0.35 + 0.65 * Math.abs(Math.sin(now / 900 + p.tw));
-        if (Math.random() < 0.002) p.ch = Math.random() < 0.3 ? GLYPHS[rnd(GLYPHS.length)] : null;
         ctx.fillStyle = `rgba(0,255,102,${a})`;
-        if (p.ch) ctx.fillText(p.ch, p.x, p.y); else ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+        ctx.fillRect(p.x - dDot / 2, p.y - dDot / 2, dDot, dDot);
       }
-      requestAnimationFrame(frame);
+      rafId = requestAnimationFrame(frame);
     }
-    document.fonts.ready.then(() => { build(); requestAnimationFrame(frame); });
-    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 200); });
-    new IntersectionObserver(([e]) => { const was = running; running = e.isIntersecting; if (running && !was) requestAnimationFrame(frame); }).observe(c);
+
+    const startLoop = () => {
+      if (!rafId && running) rafId = requestAnimationFrame(frame);
+    };
+
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => { build(); startLoop(); }).catch(() => { build(); startLoop(); });
+    } else {
+      build(); startLoop();
+    }
+
+    let rt;
+    addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => { build(); }, 200);
+    }, { passive: true });
+
+    new IntersectionObserver(([e]) => {
+      running = e.isIntersecting;
+      if (running) {
+        startLoop();
+      } else if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }).observe(c);
   }
 
   /* ---------------- API ---------------- */
@@ -299,6 +428,135 @@
     } finally { btn.disabled = false; }
   });
 
+  /* ---------------- admin section & login console ---------------- */
+  function initAdminSection() {
+    const adminSec = $('#admin');
+    if (!adminSec) return;
+
+    const authPanel = $('#admin-auth-panel');
+    const sessionPanel = $('#admin-session-panel');
+    const form = $('#admin-login-form');
+    const userInp = $('#term-user');
+    const passInp = $('#term-pass');
+    const togglePw = $('#term-toggle-pw');
+    const status = $('#term-status');
+    const submitBtn = $('#term-submit-btn');
+    const sessionUser = $('#session-username');
+    const sessionDept = $('#session-dept');
+    const logoutBtn = $('#session-logout-btn');
+
+    const TOKEN_KEY = 'cipher-admin-token';
+    const USER_KEY = 'cipher-admin-user';
+
+    const checkSession = () => {
+      const token = storage.get(TOKEN_KEY);
+      const user = storage.get(USER_KEY) || 'Administrator';
+      if (token) {
+        if (authPanel) authPanel.hidden = true;
+        if (sessionPanel) {
+          sessionPanel.hidden = false;
+          if (sessionUser) sessionUser.textContent = user.toUpperCase();
+          if (sessionDept) sessionDept.textContent = 'Department of CSE';
+        }
+      } else {
+        if (authPanel) authPanel.hidden = false;
+        if (sessionPanel) sessionPanel.hidden = true;
+      }
+    };
+
+    // Toggle password visibility
+    if (togglePw && passInp) {
+      togglePw.addEventListener('click', () => {
+        const isPw = passInp.type === 'password';
+        passInp.type = isPw ? 'text' : 'password';
+        togglePw.textContent = isPw ? '🔒' : '👁';
+      });
+    }
+
+    // Quick fill handlers on admin cards and quick buttons
+    const handleFill = (user, pass) => {
+      if (userInp) userInp.value = user || '';
+      if (passInp) passInp.value = pass || '';
+      if (status) {
+        status.className = 'form-status';
+        status.textContent = `> Selected: ${user} (Ready to verify)`;
+      }
+      const terminal = $('#admin-terminal');
+      if (terminal) {
+        terminal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (passInp) passInp.focus();
+    };
+
+    $$('[data-user]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        handleFill(btn.getAttribute('data-user'), btn.getAttribute('data-pass'));
+      });
+    });
+
+    // Form submit
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = userInp.value.trim();
+        const password = passInp.value;
+
+        status.className = 'form-status';
+        if (!username || !password) {
+          status.classList.add('err');
+          status.textContent = '> Error: Both username and password are required.';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        status.textContent = '> [ AUTHENTICATING ACCESS PRIVILEGES... ]';
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Authentication denied.');
+          }
+
+          storage.set(TOKEN_KEY, data.token);
+          storage.set(USER_KEY, data.username || username);
+
+          status.classList.add('ok');
+          status.textContent = '> [ ACCESS GRANTED // INITIALIZING SECURE SESSION ]';
+
+          setTimeout(() => {
+            checkSession();
+          }, 600);
+        } catch (err) {
+          status.classList.add('err');
+          status.textContent = `> Access Denied: ${err.message}`;
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
+    // Logout
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        storage.remove(TOKEN_KEY);
+        storage.remove(USER_KEY);
+        if (form) form.reset();
+        if (status) {
+          status.className = 'form-status';
+          status.textContent = '> Session terminated. Please authenticate to resume.';
+        }
+        checkSession();
+      });
+    }
+
+    checkSession();
+  }
+
   /* ---------------- mobile menu ---------------- */
   const toggle = $('#nav-toggle'), navLinks = $('#nav-links');
   const setMenu = (open) => { toggle.setAttribute('aria-expanded', String(open)); navLinks.classList.toggle('open', open); };
@@ -312,9 +570,13 @@
     entries.forEach((en) => en.isIntersecting &&
       links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id)));
   }, { rootMargin: '-45% 0px -50% 0px' });
-  ['home', 'about', 'leadership', 'events', 'join'].forEach((id) => io.observe($('#' + id)));
+  ['home', 'about', 'leadership', 'events', 'admin', 'join'].forEach((id) => {
+    const el = $('#' + id);
+    if (el) io.observe(el);
+  });
 
   /* ---------------- boot ---------------- */
   runIntro(); startWaves(); startHeroDots();
   loadLeaders(); loadEvents(); loadArchive();
+  initAdminSection();
 })();

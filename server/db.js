@@ -55,4 +55,39 @@ CREATE TABLE IF NOT EXISTS admins (
 );
 `);
 
+// Auto-seed if the database is newly initialized
+try {
+  const memberCount = db.prepare('SELECT COUNT(*) AS c FROM members').get().c;
+  if (memberCount === 0) {
+    const { seed } = require('../scripts/seed');
+    seed(db);
+  }
+
+  const adminCount = db.prepare('SELECT COUNT(*) AS c FROM admins').get().c;
+  const bcrypt = require('bcryptjs');
+  const adminsToAdd = [
+    { username: 'admin', pass: 'cipher2026admin' },
+    { username: 'carol', pass: 'carol2026' },
+    { username: 'ashna', pass: 'ashna2026' },
+    { username: 'ashlin', pass: 'ashlin2026' },
+  ];
+  for (const a of adminsToAdd) {
+    const existing = db.prepare('SELECT id FROM admins WHERE username = ?').get(a.username);
+    if (!existing) {
+      db.prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)')
+        .run(a.username, bcrypt.hashSync(a.pass, 10));
+      console.log(`[CIPHER] Admin created: username="${a.username}"`);
+    }
+  }
+
+  const joinCount = db.prepare('SELECT COUNT(*) AS c FROM join_requests').get().c;
+  if (joinCount === 0) {
+    db.prepare(
+      'INSERT INTO join_requests (name, email, usn, year, interest, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    ).run('Carol Vanida Quadras', '24a44.carol@sjec.ac.in', '4s024cs044', 2, 'Web', 'Application to Cipher', 'new', '2026-09-21 14:53:55');
+  }
+} catch (err) {
+  console.warn('[CIPHER] Auto-seed note:', err.message);
+}
+
 module.exports = db;

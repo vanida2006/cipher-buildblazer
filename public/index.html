@@ -15,6 +15,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Safeguard: Ensure page scrolling is never stuck in locked state
+    setTimeout(function() { document.body.classList.remove('locked'); }, 2500);
+  </script>
 </head>
 <body class="locked">
 
@@ -37,6 +41,7 @@
       <a href="#about">About</a>
       <a href="#leadership">Leadership</a>
       <a href="#events">Events</a>
+      <a href="#admin">Admin</a>
       <a href="#join">Join</a>
     </nav>
     <button class="btn btn--ghost btn--sm" data-open-join type="button">Join CIPHER</button>
@@ -99,6 +104,184 @@
       <label class="search"><span class="sr">Search activities</span><input id="archive-search" type="search" placeholder="Search activities…" autocomplete="off"></label>
       <ol class="archive" id="archive"></ol>
       <p class="empty-msg" id="archive-empty" hidden>No activities match your search.</p>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="admin" class="section admin-sec">
+      <div class="admin-sec__header">
+        <p class="tag">// administration &amp; governance</p>
+        <h2 class="glow">Department Administrators</h2>
+        <p class="lead">Authorized system administrators for the Department of Computer Science &amp; Engineering. Overseeing association operations, membership verification, event moderation, and system privileges.</p>
+      </div>
+
+      <!-- Admin Cards Grid -->
+      <div class="admin-grid" id="admin-cards">
+        <!-- Admin 1: Carol Vanida Quadras -->
+        <article class="admin-card" data-admin-id="carol">
+          <div class="admin-card__badge-row">
+            <span class="admin-badge">ADMIN // ID-01</span>
+            <span class="admin-dept-tag">CSE DEPT</span>
+          </div>
+          <div class="admin-card__photo">
+            <img src="img/admin/carol-quadras.jpg" alt="Carol Vanida Quadras" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            <div class="admin-card__scanlines" aria-hidden="true"></div>
+            <div class="admin-card__status-dot"><span></span>ACTIVE</div>
+          </div>
+          <div class="admin-card__body">
+            <h3 class="admin-card__name">Carol Vanida Quadras</h3>
+            <p class="admin-card__dept">Computer Science &amp; Engineering</p>
+            <p class="admin-card__role">Lead Administrator &amp; Coordinator</p>
+            <div class="admin-card__creds">
+              <span class="cred-tag"><span class="cred-label">USER:</span> carol</span>
+              <span class="cred-tag"><span class="cred-label">LEVEL:</span> 05 ROOT</span>
+            </div>
+            <p class="admin-card__desc">Directs executive operations, member access approvals, and core technical infrastructure.</p>
+            <button type="button" class="btn btn--ghost btn--sm admin-fill-btn" data-user="carol" data-pass="carol2026">
+              Select Carol →
+            </button>
+          </div>
+        </article>
+
+        <!-- Admin 2: Ashna Snehal Menezes -->
+        <article class="admin-card" data-admin-id="ashna">
+          <div class="admin-card__badge-row">
+            <span class="admin-badge">ADMIN // ID-02</span>
+            <span class="admin-dept-tag">CSE DEPT</span>
+          </div>
+          <div class="admin-card__photo">
+            <img src="img/admin/ashna-menezes.jpg" alt="Ashna Snehal Menezes" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            <div class="admin-card__scanlines" aria-hidden="true"></div>
+            <div class="admin-card__status-dot"><span></span>ACTIVE</div>
+          </div>
+          <div class="admin-card__body">
+            <h3 class="admin-card__name">Ashna Snehal Menezes</h3>
+            <p class="admin-card__dept">Computer Science &amp; Engineering</p>
+            <p class="admin-card__role">Operations Administrator &amp; Coordinator</p>
+            <div class="admin-card__creds">
+              <span class="cred-tag"><span class="cred-label">USER:</span> ashna</span>
+              <span class="cred-tag"><span class="cred-label">LEVEL:</span> 04 OPS</span>
+            </div>
+            <p class="admin-card__desc">Coordinates technical workshops, student association logistics, and department engagement.</p>
+            <button type="button" class="btn btn--ghost btn--sm admin-fill-btn" data-user="ashna" data-pass="ashna2026">
+              Select Ashna →
+            </button>
+          </div>
+        </article>
+
+        <!-- Admin 3: Ashlin Mischel Fernandes -->
+        <article class="admin-card" data-admin-id="ashlin">
+          <div class="admin-card__badge-row">
+            <span class="admin-badge">ADMIN // ID-03</span>
+            <span class="admin-dept-tag">CSE DEPT</span>
+          </div>
+          <div class="admin-card__photo">
+            <img src="img/admin/ashlin-fernandes.jpg" alt="Ashlin Mischel Fernandes" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            <div class="admin-card__scanlines" aria-hidden="true"></div>
+            <div class="admin-card__status-dot"><span></span>ACTIVE</div>
+          </div>
+          <div class="admin-card__body">
+            <h3 class="admin-card__name">Ashlin Mischel Fernandes</h3>
+            <p class="admin-card__dept">Computer Science &amp; Engineering</p>
+            <p class="admin-card__role">Technical Administrator &amp; Coordinator</p>
+            <div class="admin-card__creds">
+              <span class="cred-tag"><span class="cred-label">USER:</span> ashlin</span>
+              <span class="cred-tag"><span class="cred-label">LEVEL:</span> 04 TECH</span>
+            </div>
+            <p class="admin-card__desc">Manages technical hackathon challenges, code reviews, and project evaluations.</p>
+            <button type="button" class="btn btn--ghost btn--sm admin-fill-btn" data-user="ashlin" data-pass="ashlin2026">
+              Select Ashlin →
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <!-- Admin Login Console -->
+      <div class="admin-terminal" id="admin-terminal">
+        <div class="admin-terminal__bar">
+          <div class="terminal-dots">
+            <span class="dot dot--red"></span>
+            <span class="dot dot--yellow"></span>
+            <span class="dot dot--green"></span>
+          </div>
+          <div class="terminal-title">CIPHER_ADMIN_GATEWAY // CSE_SJEC // PORT_3000</div>
+          <div class="terminal-status"><span class="blink">●</span> AUTH_ONLINE</div>
+        </div>
+
+        <div class="admin-terminal__inner">
+          <!-- State 1: Unauthenticated Login Form -->
+          <div id="admin-auth-panel" class="admin-auth-panel">
+            <div class="terminal-header">
+              <span class="terminal-icon">&gt;_</span>
+              <div>
+                <h3 class="terminal-heading">ADMIN LOGIN CONSOLE</h3>
+                <p class="terminal-sub">Sign in with an administrator account to review student join applications, edit leadership records, and manage workshops.</p>
+              </div>
+            </div>
+
+            <form id="admin-login-form" class="terminal-form" novalidate>
+              <div class="terminal-form__row">
+                <label class="terminal-field">
+                  <span class="field-label">// USERNAME</span>
+                  <div class="field-input-box">
+                    <span class="field-prefix">&gt;</span>
+                    <input name="username" id="term-user" required placeholder="carol / ashna / ashlin / admin" autocomplete="username">
+                  </div>
+                </label>
+
+                <label class="terminal-field">
+                  <span class="field-label">// PASSWORD</span>
+                  <div class="field-input-box">
+                    <span class="field-prefix">#</span>
+                    <input name="password" id="term-pass" type="password" required placeholder="••••••••" autocomplete="current-password">
+                    <button type="button" id="term-toggle-pw" class="pw-eye" aria-label="Toggle password visibility">👁</button>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Quick profile select pills -->
+              <div class="quick-admin-select">
+                <span class="quick-label">Fast Select:</span>
+                <button type="button" class="quick-btn" data-user="carol" data-pass="carol2026">Carol (CSE)</button>
+                <button type="button" class="quick-btn" data-user="ashna" data-pass="ashna2026">Ashna (CSE)</button>
+                <button type="button" class="quick-btn" data-user="ashlin" data-pass="ashlin2026">Ashlin (CSE)</button>
+                <button type="button" class="quick-btn" data-user="admin" data-pass="cipher2026admin">Root Admin</button>
+              </div>
+
+              <div class="terminal-submit-bar">
+                <button class="btn btn--solid" type="submit" id="term-submit-btn">
+                  [ VERIFY &amp; ACCESS DASHBOARD ]
+                </button>
+                <a href="/admin/" class="btn btn--ghost" target="_blank" rel="noopener">
+                  Full Admin Portal ↗
+                </a>
+              </div>
+
+              <p class="form-status" id="term-status" role="status"></p>
+            </form>
+          </div>
+
+          <!-- State 2: Authenticated Session Panel -->
+          <div id="admin-session-panel" class="admin-session-panel" hidden>
+            <div class="session-badge">
+              <span class="session-badge__icon">✓</span>
+              <div>
+                <p class="session-badge__status">AUTHENTICATED SESSION ACTIVE</p>
+                <h4 class="session-badge__user">Welcome, <span id="session-username">Admin</span> (<span id="session-dept">Department of CSE</span>)</h4>
+                <p class="session-badge__info">Access token loaded. You have administrative privileges to manage club applications, update event galleries, and configure leadership data.</p>
+              </div>
+            </div>
+
+            <div class="session-actions">
+              <a href="/admin/" class="btn btn--solid btn--lg" id="session-open-dash">
+                Launch Full Management Portal →
+              </a>
+              <button type="button" class="btn btn--ghost" id="session-logout-btn">
+                [ Terminate Session / Log Out ]
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- JOIN -->
