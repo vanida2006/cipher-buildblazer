@@ -797,21 +797,94 @@
     });
   }
 
+  async function loadContent() {
+    try {
+      const content = await api('/content');
+      if (content && typeof content === 'object') {
+        if (content.about_title && $('#about-title')) $('#about-title').textContent = content.about_title;
+        if (content.about_text && $('#about-lead')) $('#about-lead').textContent = content.about_text;
+        if (content.hero_subtitle && $('#hero-sub')) $('#hero-sub').textContent = content.hero_subtitle;
+      }
+    } catch (e) {
+      console.warn('Content loader fallback:', e.message);
+    }
+  }
+
   async function loadEvents() {
-    initEventCards();
+    const container = $('#event-cards');
+    if (!container) return;
+
     try {
       allEvents = await api('/events');
       if (Array.isArray(allEvents) && allEvents.length > 0) {
-        allEvents.forEach((ev) => {
-          const card = $(`#event-cards .card[data-slug="${ev.slug}"]`);
-          if (card && Array.isArray(ev.gallery) && ev.gallery.length > 0) {
-            card.dataset.gallery = JSON.stringify(ev.gallery);
-          }
+        // Build cards dynamically for all published events
+        const cardElements = allEvents.map((ev) => {
+          const gallery = Array.isArray(ev.gallery) && ev.gallery.length > 0 ? ev.gallery : (ev.poster ? [{ src: ev.poster, caption: ev.title }] : []);
+          const firstImg = gallery[0]?.src || 'img/events/gsoc-llm-workshop/02.jpg';
+          const cat = (ev.category || 'EVENT').toUpperCase();
+          const dept = ev.category?.toUpperCase() === 'WORKSHOP' ? 'CSE · HANDS-ON' : (ev.category?.toUpperCase() === 'COMPETITION' ? 'CIPHER · CONTEST' : 'CSE · CIPHER');
+          const dateFormatted = fmtDate(ev.event_date);
+          const totalCount = String(gallery.length || 1).padStart(2, '0');
+
+          const article = h('article', {
+            class: `card ${gallery.length > 1 ? 'has-gallery' : ''}`,
+            'data-slug': ev.slug,
+            'data-category': cat,
+            'data-gallery': JSON.stringify(gallery),
+            tabindex: '0',
+            role: 'button',
+            'aria-label': `${ev.title} details`
+          });
+
+          // Media container
+          const media = h('div', { class: 'card__media' },
+            h('div', { class: 'card__progress', 'aria-hidden': 'true' }, h('div', { class: 'card__progress-bar' })),
+            h('div', { class: 'card__category-badge', text: cat }),
+            gallery.length > 1 ? h('div', { class: 'card__hud', 'aria-hidden': 'true' },
+              h('span', { class: 'card__hud-badge' },
+                h('span', { class: 'hud-idx', text: '01' }), ' / ', h('span', { class: 'hud-total', text: totalCount })
+              )
+            ) : null,
+            h('div', { class: 'card__slides' },
+              ...gallery.map((g, idx) => h('img', {
+                src: g.src,
+                alt: `${ev.title} photo ${idx + 1}`,
+                class: `card__slide ${idx === 0 ? 'active' : ''}`,
+                loading: 'lazy',
+                decoding: 'async'
+              }))
+            ),
+            h('div', { class: 'card__overlay', 'aria-hidden': 'true' }),
+            gallery.length > 1 ? h('div', { class: 'card__dots', 'aria-hidden': 'true' },
+              ...gallery.map((_, idx) => h('span', { class: `card__dot ${idx === 0 ? 'active' : ''}` }))
+            ) : null
+          );
+
+          // Content container
+          const content = h('div', { class: 'card__content' },
+            h('div', { class: 'card__header-meta' },
+              h('span', { class: 'card__dept-tag', text: dept }),
+              h('span', { class: 'card__date-tag', text: dateFormatted })
+            ),
+            h('h3', { class: 'card__title', text: ev.title }),
+            h('p', { class: 'card__summary', text: ev.summary || '' }),
+            h('div', { class: 'card__footer' },
+              h('span', { class: 'card__venue', text: ev.venue || (ev.event_time ? ev.event_time : 'SJEC Campus') }),
+              h('span', { class: 'card__action', text: 'VIEW DETAILS ↗' })
+            )
+          );
+
+          article.append(media, content);
+          return article;
         });
+
+        container.replaceChildren(...cardElements);
       }
     } catch (err) {
       console.warn('Using pre-rendered event cards fallback:', err);
     }
+
+    initEventCards();
   }
 
   async function loadArchive() {
@@ -865,6 +938,7 @@
     const form = $('#modal-admin-login-form');
     const userInp = $('#modal-term-user');
     const passInp = $('#modal-term-pass');
+    const rememberInp = $('#modal-term-remember');
     const togglePw = $('#modal-term-toggle-pw');
     const status = $('#modal-term-status');
     const submitBtn = $('#modal-term-submit-btn');
@@ -874,36 +948,46 @@
     const TOKEN_KEY = 'cipher-admin-token';
     const USER_KEY = 'cipher-admin-user';
 
+    const getStoredToken = () => {
+      try {
+        return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+      } catch { return null; }
+    };
+
+    const getStoredUser = () => {
+      try {
+        return sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY) || 'Administrator';
+      } catch { return 'Administrator'; }
+    };
+
     const checkSession = () => {
-      const token = storage.get(TOKEN_KEY);
-      const user = storage.get(USER_KEY) || 'Administrator';
+      const token = getStoredToken();
+      const user = getStoredUser();
       if (token) {
         if (authFormWrap) authFormWrap.hidden = true;
         if (sessionWrap) sessionWrap.hidden = false;
         if (modalSessionUser) modalSessionUser.textContent = user;
-        if (openBtn) {
-          openBtn.textContent = 'Open Portal ↗';
-          openBtn.classList.add('active-session');
-        }
       } else {
         if (authFormWrap) authFormWrap.hidden = false;
         if (sessionWrap) sessionWrap.hidden = true;
-        if (openBtn) {
-          openBtn.textContent = 'Admin Login →';
-          openBtn.classList.remove('active-session');
-        }
       }
     };
 
-    // Open Admin Modal
+    // Open Admin Modal or Navigate to Dashboard
     if (openBtn) {
       openBtn.addEventListener('click', () => {
+        const token = getStoredToken();
+        if (token) {
+          window.location.href = '/admin/';
+          return;
+        }
         if (status) {
           status.className = 'form-status';
           status.textContent = '';
         }
         checkSession();
         loginModal.showModal();
+        if (userInp) userInp.focus();
       });
     }
 
@@ -916,57 +1000,23 @@
       });
     }
 
-    // Quick select handlers for fast fill
-    const handleFill = (user, pass) => {
-      if (userInp) userInp.value = user || '';
-      if (passInp) passInp.value = pass || '';
-      if (status) {
-        status.className = 'form-status';
-        status.textContent = `Selected: ${user} (Ready to verify)`;
-      }
-      if (loginModal && !loginModal.open) {
-        checkSession();
-        loginModal.showModal();
-      }
-      if (passInp) passInp.focus();
-    };
-
-    $$('.quick-select-pill[data-user]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        handleFill(btn.getAttribute('data-user'), btn.getAttribute('data-pass'));
-      });
-    });
-
-    // Also clicking an admin card opens the modal pre-filled for that admin
-    $$('.admin-card-v2[data-admin-id]').forEach((card) => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('a')) return; // let social links work normally
-        const id = card.getAttribute('data-admin-id');
-        const passMap = {
-          aarav: 'aarav2026',
-          sneha: 'sneha2026',
-          rohan: 'rohan2026',
-        };
-        handleFill(id, passMap[id] || `${id}2026`);
-      });
-    });
-
     // Form submit
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = userInp.value.trim();
-        const password = passInp.value;
+        const username = userInp ? userInp.value.trim() : '';
+        const password = passInp ? passInp.value : '';
+        const remember = rememberInp ? rememberInp.checked : false;
 
         status.className = 'form-status';
         if (!username || !password) {
           status.classList.add('err');
-          status.textContent = 'Both username and password are required.';
+          status.textContent = 'Both username/email and password are required.';
           return;
         }
 
         submitBtn.disabled = true;
-        status.textContent = 'Authenticating access privileges…';
+        status.textContent = 'Authenticating admin credentials…';
 
         try {
           const res = await fetch('/api/admin/login', {
@@ -976,21 +1026,27 @@
           });
           const data = await res.json();
           if (!res.ok) {
-            throw new Error(data.error || 'Authentication denied.');
+            throw new Error(data.error || 'Authentication denied. Verify username and password.');
           }
 
-          storage.set(TOKEN_KEY, data.token);
-          storage.set(USER_KEY, data.username || username);
+          try {
+            sessionStorage.setItem(TOKEN_KEY, data.token);
+            sessionStorage.setItem(USER_KEY, data.username || username);
+            if (remember) {
+              localStorage.setItem(TOKEN_KEY, data.token);
+              localStorage.setItem(USER_KEY, data.username || username);
+            }
+          } catch {}
 
           status.classList.add('ok');
-          status.textContent = '✓ Access Granted. Launching session…';
+          status.textContent = '✓ Access granted. Redirecting to dashboard…';
 
           setTimeout(() => {
-            checkSession();
-          }, 500);
+            window.location.href = '/admin/';
+          }, 400);
         } catch (err) {
           status.classList.add('err');
-          status.textContent = `Access Denied: ${err.message}`;
+          status.textContent = err.message;
         } finally {
           submitBtn.disabled = false;
         }
@@ -1000,8 +1056,12 @@
     // Logout
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
-        storage.remove(TOKEN_KEY);
-        storage.remove(USER_KEY);
+        try {
+          sessionStorage.removeItem(TOKEN_KEY);
+          sessionStorage.removeItem(USER_KEY);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+        } catch {}
         if (form) form.reset();
         if (status) {
           status.className = 'form-status';
@@ -1112,27 +1172,27 @@
   /* ---------------- viewport scroll reveal ---------------- */
   function initScrollReveal() {
     if (reduceMotion) {
-      $(".reveal").forEach((el) => el.classList.add("in-view"));
+      $$('.reveal').forEach((el) => el.classList.add('in-view'));
       return;
     }
-    const revealTargets = $(
-      ".section, .pillar, .card, .admin-card-v2, .admin-login-banner, .archive li, .about__text, .about__collage"
+    const revealTargets = $$(
+      '.section, .pillar, .card, .admin-dashboard-hero-card, .admin-card-v2, .admin-login-banner, .archive li, .about__text, .about__collage'
     );
     revealTargets.forEach((el) => {
-      el.classList.add("reveal");
+      el.classList.add('reveal');
       const siblings = el.parentNode ? Array.from(el.parentNode.children) : [];
       const idx = siblings.indexOf(el);
-      el.style.setProperty("--reveal-delay", String(idx >= 0 ? idx % 6 : 0));
+      el.style.setProperty('--reveal-delay', String(idx >= 0 ? idx % 6 : 0));
     });
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add("in-view");
+          entry.target.classList.add('in-view');
           observer.unobserve(entry.target);
         }
       });
-    }, { rootMargin: "0px 0px -40px 0px", threshold: 0.06 });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.06 });
 
     revealTargets.forEach((el) => observer.observe(el));
   }
@@ -1140,7 +1200,7 @@
   /* ---------------- boot ---------------- */
   runIntro(); startWaves(); startHeroDots();
   initPillars();
-  loadLeaders(); loadEvents(); loadArchive();
+  loadLeaders(); loadEvents(); loadArchive(); loadContent();
   initAdminSection();
   initScrollReveal();
 })();
