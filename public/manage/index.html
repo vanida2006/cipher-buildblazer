@@ -1,1 +1,67 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>CIPHER // Management Portal</title><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="/manage/manage.css"></head><body class="manage-body"><div class="manage-bg"></div><div id="manage-app"></div><script src="/manage/manage.js" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>CIPHER // Management Portal</title>
+  <link rel="icon" href="/img/favicon.png">
+  <link rel="stylesheet" href="/manage/manage.css">
+  <style>
+    .login-fallback{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;z-index:2}
+    .login-box{width:min(430px,100%);background:rgba(3,19,10,.94);border:1px solid rgba(0,255,102,.38);border-radius:16px;padding:32px;box-shadow:0 20px 80px rgba(0,0,0,.45)}
+    .login-box .logo{display:block;width:92px;height:92px;object-fit:contain;margin:0 auto 18px;border-radius:12px}
+    .login-box h1{margin:0;text-align:center;color:#fff;font:700 30px system-ui}
+    .login-box .sub{margin:7px 0 24px;text-align:center;color:#6d9a7b;font:12px ui-monospace,Consolas,monospace}
+    .login-box label{display:block;color:#6d9a7b;font:11px ui-monospace,Consolas,monospace;margin:14px 0 6px}
+    .login-box input{width:100%;box-sizing:border-box;background:#021109;color:#fff;border:1px solid rgba(0,255,102,.17);padding:12px;border-radius:8px;outline:none}
+    .login-box input:focus{border-color:rgba(0,255,102,.65)}
+    .login-box button{width:100%;margin-top:20px;padding:12px;border:0;border-radius:8px;background:#00ff66;color:#011;font-weight:800;cursor:pointer}
+    .login-box .error{color:#ff8888;min-height:20px;margin-top:12px;text-align:center;font:12px ui-monospace,Consolas,monospace}
+    .js-error{display:none}
+  </style>
+</head>
+<body class="manage-body">
+  <div class="manage-bg"></div>
+
+  <div id="manage-app">
+    <div class="login-fallback">
+      <form class="login-box" id="fallback-login">
+        <img class="logo" src="/img/logo.jpg" alt="CIPHER">
+        <h1>Management Portal</h1>
+        <div class="sub">SECURE ADMIN ACCESS</div>
+        <label for="fallback-email">Administrator email</label>
+        <input id="fallback-email" type="email" autocomplete="username" required>
+        <label for="fallback-password">Password</label>
+        <input id="fallback-password" type="password" autocomplete="current-password" required>
+        <div class="error" id="fallback-error"></div>
+        <button type="submit">LOGIN →</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('fallback-login').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const error=document.getElementById('fallback-error');
+      error.textContent='';
+      const email=document.getElementById('fallback-email').value.trim();
+      const password=document.getElementById('fallback-password').value;
+      try{
+        const r=await fetch('/api/manage/auth/login',{
+          method:'POST',
+          credentials:'same-origin',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({email,password})
+        });
+        const data=await r.json().catch(()=>({}));
+        if(!r.ok) throw new Error(data.error||'Login failed');
+        location.href='/manage/dashboard';
+      }catch(err){
+        error.textContent=err.message||'Unable to sign in';
+      }
+    });
+  </script>
+  <script src="/manage/manage.js" defer></script>
+</body>
+</html>
