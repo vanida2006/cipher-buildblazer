@@ -14,7 +14,7 @@ const gallery = (slug, captions = {}) => {
 
 function seed(database) {
   const db = database || require('../server/db');
-  db.exec('DELETE FROM members; DELETE FROM events; DELETE FROM activities;');
+  db.exec('DELETE FROM team_members; DELETE FROM events; DELETE FROM activities;');
 
   /* ---------- leadership ---------- */
   // Roles for the last five are not in the material provided — set them in /admin/ (Leadership tab).
@@ -29,7 +29,7 @@ function seed(database) {
     ['Chaitra RM', 'Member', 'chaitra-rm'],
     ['Shamitha KV', 'Member', 'shamitha-kv'],
   ];
-  const addM = db.prepare('INSERT INTO members (name,role,image,sort_order) VALUES (?,?,?,?)');
+  const addM = db.prepare('INSERT INTO team_members (name,role,image,sort_order) VALUES (?,?,?,?)');
   members.forEach(([n, r, img], i) => addM.run(n, r, `/img/team/${img}.jpg`, i));
 
   /* ---------- events (from the Cipher and AgentBlazer annual reports) ---------- */
