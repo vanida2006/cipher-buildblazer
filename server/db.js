@@ -124,12 +124,20 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 try { if (tableExists('members') && !tableExists('team_members')) db.exec('ALTER TABLE members RENAME TO team_members'); } catch (e) { console.warn('[CIPHER] members migration:', e.message); }
 try { if (tableExists('join_requests') && !tableExists('registrations')) db.exec('ALTER TABLE join_requests RENAME TO registrations'); } catch (e) { console.warn('[CIPHER] join_requests migration:', e.message); }
 
-for (const [c,t] of [['description',"TEXT NOT NULL DEFAULT ''"],['instagram','TEXT'],['email','TEXT'],['active','INTEGER NOT NULL DEFAULT 1'],['created_at',"TEXT NOT NULL DEFAULT (datetime('now'))"],['updated_at',"TEXT NOT NULL DEFAULT (datetime('now'))"]]) addColumn('team_members',c,t);
-for (const [c,t] of [['description',"TEXT NOT NULL DEFAULT ''"],['start_time','TEXT'],['end_time','TEXT'],['status',"TEXT NOT NULL DEFAULT 'UPCOMING'"],['created_at',"TEXT NOT NULL DEFAULT (datetime('now'))"],['updated_at',"TEXT NOT NULL DEFAULT (datetime('now'))"]] ) addColumn('events',c,t);
-for (const [c,t] of [['short_description',"TEXT NOT NULL DEFAULT ''"],['activity_date','TEXT'],['category',"TEXT NOT NULL DEFAULT 'GENERAL'"],['status',"TEXT NOT NULL DEFAULT 'VISIBLE'"],['visible','INTEGER NOT NULL DEFAULT 1'],['created_at',"TEXT NOT NULL DEFAULT (datetime('now'))"],['updated_at',"TEXT NOT NULL DEFAULT (datetime('now'))"]]) addColumn('activities',c,t);
-for (const [c,t] of [['phone',"TEXT NOT NULL DEFAULT ''"],['department',"TEXT NOT NULL DEFAULT ''"],['college',"TEXT NOT NULL DEFAULT ''"],['skills',"TEXT NOT NULL DEFAULT ''"],['interests',"TEXT NOT NULL DEFAULT ''"],['why_join',"TEXT NOT NULL DEFAULT ''"],['updated_at',"TEXT NOT NULL DEFAULT (datetime('now'))"]]) addColumn('registrations',c,t);
-for (const [c,t] of [['name',"TEXT NOT NULL DEFAULT ''"],['email','TEXT'],['username','TEXT'],['role',"TEXT NOT NULL DEFAULT 'CONTENT_MANAGER'"],['profile_image','TEXT'],['status',"TEXT NOT NULL DEFAULT 'ACTIVE'"],['session_version','INTEGER NOT NULL DEFAULT 1'],['created_at',"TEXT NOT NULL DEFAULT (datetime('now'))"],['updated_at',"TEXT NOT NULL DEFAULT (datetime('now'))"],['last_login_at','TEXT']]) addColumn('admins',c,t);
+for (const [c,t] of [['description',"TEXT NOT NULL DEFAULT ''"],['instagram','TEXT'],['email','TEXT'],['active','INTEGER NOT NULL DEFAULT 1'],['created_at','TEXT'],['updated_at','TEXT']]) addColumn('team_members',c,t);
+for (const [c,t] of [['description',"TEXT NOT NULL DEFAULT ''"],['start_time','TEXT'],['end_time','TEXT'],['status',"TEXT NOT NULL DEFAULT 'UPCOMING'"],['created_at','TEXT'],['updated_at','TEXT']] ) addColumn('events',c,t);
+for (const [c,t] of [['short_description',"TEXT NOT NULL DEFAULT ''"],['activity_date','TEXT'],['category',"TEXT NOT NULL DEFAULT 'GENERAL'"],['status',"TEXT NOT NULL DEFAULT 'VISIBLE'"],['visible','INTEGER NOT NULL DEFAULT 1'],['created_at','TEXT'],['updated_at','TEXT']]) addColumn('activities',c,t);
+for (const [c,t] of [['phone',"TEXT NOT NULL DEFAULT ''"],['department',"TEXT NOT NULL DEFAULT ''"],['college',"TEXT NOT NULL DEFAULT ''"],['skills',"TEXT NOT NULL DEFAULT ''"],['interests',"TEXT NOT NULL DEFAULT ''"],['why_join',"TEXT NOT NULL DEFAULT ''"],['updated_at','TEXT']]) addColumn('registrations',c,t);
+for (const [c,t] of [['name',"TEXT NOT NULL DEFAULT ''"],['email','TEXT'],['username','TEXT'],['role',"TEXT NOT NULL DEFAULT 'CONTENT_MANAGER'"],['profile_image','TEXT'],['status',"TEXT NOT NULL DEFAULT 'ACTIVE'"],['session_version','INTEGER NOT NULL DEFAULT 1'],['created_at','TEXT'],['updated_at','TEXT'],['last_login_at','TEXT']]) addColumn('admins',c,t);
 for (const [c,t] of [['admin_id','INTEGER'],['admin_name',"TEXT NOT NULL DEFAULT 'System'"],['resource',"TEXT NOT NULL DEFAULT ''"],['details',"TEXT NOT NULL DEFAULT ''"]]) addColumn('activity_logs',c,t);
+
+try {
+  db.prepare("UPDATE team_members SET created_at=COALESCE(created_at,datetime('now')), updated_at=COALESCE(updated_at,datetime('now'))").run();
+  db.prepare("UPDATE events SET created_at=COALESCE(created_at,datetime('now')), updated_at=COALESCE(updated_at,datetime('now'))").run();
+  db.prepare("UPDATE activities SET created_at=COALESCE(created_at,datetime('now')), updated_at=COALESCE(updated_at,datetime('now'))").run();
+  db.prepare("UPDATE registrations SET created_at=COALESCE(created_at,datetime('now')), updated_at=COALESCE(updated_at,datetime('now'))").run();
+  db.prepare("UPDATE admins SET created_at=COALESCE(created_at,datetime('now')), updated_at=COALESCE(updated_at,datetime('now'))").run();
+} catch (e) { console.warn('[CIPHER] timestamp backfill:', e.message); }
 
 try { db.prepare("UPDATE admins SET email=COALESCE(NULLIF(email,''), username || '@ciphersjec.local') WHERE email IS NULL OR email=''").run(); db.prepare("UPDATE admins SET status='INACTIVE', session_version=session_version+1 WHERE email LIKE '%@ciphersjec.local'").run(); } catch {}
 try { db.prepare("UPDATE admins SET name=COALESCE(NULLIF(name,''), username, 'Administrator') WHERE name='' OR name IS NULL").run(); } catch {}
