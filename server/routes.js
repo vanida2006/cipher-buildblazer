@@ -1,617 +1,98 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const rateLimit = require('express-rate-limit');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const { z } = require('zod');
-const { uploadDir } = require('./paths');
-const { db, logActivity } = require('./db');
-const { sign, requireAdmin } = require('./auth');
-
-const api = express.Router();
-
-/* ---------- helpers ---------- */
-const parseEvent = (r) => ({
-  ...r,
-  featured: !!r.featured,
-  published: r.published !== 0,
-  body: typeof r.body === 'string' ? JSON.parse(r.body || '[]') : (r.body || []),
-  gallery: typeof r.gallery === 'string' ? JSON.parse(r.gallery || '[]') : (r.gallery || []),
-  poster: r.poster || (r.gallery && JSON.parse(r.gallery || '[]')[0]?.src) || null,
-  event_time: r.event_time || null,
-  reg_link: r.reg_link || null,
-});
-
-const validate = (schema) => (req, res, next) => {
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({
-      error: 'Validation failed',
-      details: result.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
-    });
-  }
-  req.body = result.data;
-  next();
+const express=require('express');
+const bcrypt=require('bcryptjs');
+const rateLimit=require('express-rate-limit');
+const multer=require('multer');
+const fs=require('fs');
+const path=require('path');
+const crypto=require('crypto');
+const {z}=require('zod');
+const {uploadDir}=require('./paths');
+const db=require('./db');
+const {sign,setSessionCookie,clearSessionCookie,requireAuth,requireSameOrigin}=require('./auth');
+const api=express.Router();
+const ROLES=['SUPER_ADMIN','EVENT_MANAGER','CONTENT_MANAGER'];
+const PERMS={
+ SUPER_ADMIN:new Set(['events','activities','registrations','team','content','gallery','logs','admins','settings']),
+ EVENT_MANAGER:new Set(['events','registrations:read','gallery','activities:read']),
+ CONTENT_MANAGER:new Set(['activities','registrations:read','team','content','settings'])
 };
+const allow=p=>(req,res,next)=>PERMS[req.admin?.role]?.has(p)?next():res.status(403).json({error:'Permission denied'});
+const guard=[requireAuth,requireSameOrigin];
+const validate=s=>(req,res,next)=>{const r=s.safeParse(req.body);if(!r.success)return res.status(400).json({error:'Validation failed',details:r.error.issues});req.body=r.data;next()};
+const parse=v=>{try{return typeof v==='string'?JSON.parse(v||'[]'):v||[]}catch{return[]}};
+const audit=(req,a,r,d)=>db.logActivity({id:req.admin?.sub,name:req.admin?.name||req.admin?.email||'Admin'},a,d,r);
+const eventOut=r=>({...r,published:!!r.published,featured:!!r.featured,status:r.status||'UPCOMING',body:parse(r.body),gallery:parse(r.gallery),poster:r.poster||null});
+const safeUrl=v=>{if(!v)return true;try{return ['http:','https:'].includes(new URL(v).protocol)}catch{return v.startsWith('/img/')||v.startsWith('/uploads/')}};
 
-const slugify = (s) =>
-  s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-/* Optional: post new applications to a Discord/Slack-style webhook (set JOIN_WEBHOOK_URL). */
-function notifyWebhook(text) {
-  const url = process.env.JOIN_WEBHOOK_URL;
-  if (!url) return;
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content: text, text, allowed_mentions: { parse: [] } }),
-  }).catch((e) => console.warn('Webhook failed:', e.message));
-}
-
-/* ---------- public: read ---------- */
-api.get('/health', (_req, res) => res.json({ ok: true }));
-
-api.get('/leadership', (_req, res) => {
-  res.json(db.prepare('SELECT * FROM members ORDER BY sort_order, id').all());
+const loginLimiter=rateLimit({windowMs:15*60*1000,limit:10,standardHeaders:'draft-8',legacyHeaders:false});
+api.post('/manage/auth/login',loginLimiter,validate(z.object({email:z.string().email().max(160),password:z.string().min(1).max(200)})),(req,res)=>{
+ const a=db.prepare("SELECT * FROM admins WHERE email=? COLLATE NOCASE AND status='ACTIVE'").get(req.body.email.trim().toLowerCase());
+ if(!a||!bcrypt.compareSync(req.body.password,a.password_hash))return res.status(401).json({error:'Invalid email or password.'});
+ db.prepare("UPDATE admins SET last_login_at=datetime('now') WHERE id=?").run(a.id);
+ setSessionCookie(res,sign(a));res.json({admin:{id:a.id,name:a.name,email:a.email,role:a.role,profile_image:a.profile_image}});
 });
+api.post('/manage/auth/logout',...guard,(req,res)=>{clearSessionCookie(res);res.status(204).end()});
+api.get('/manage/auth/me',...guard,(req,res)=>{const a=db.prepare("SELECT id,name,email,role,profile_image,status,created_at,last_login_at FROM admins WHERE id=?").get(req.admin.sub);if(!a||a.status!=='ACTIVE')return res.status(401).json({error:'Inactive account'});req.admin.name=a.name;req.admin.email=a.email;req.admin.role=a.role;res.json({admin:a})});
 
-api.get('/events', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM events WHERE published = 1 ORDER BY event_date DESC').all();
-  res.json(rows.map(parseEvent));
+const manage=express.Router();manage.use(...guard);
+manage.get('/dashboard',(req,res)=>{
+ const today=new Date().toISOString().slice(0,10);
+ const stats={totalEvents:db.prepare('SELECT COUNT(*) c FROM events').get().c,upcomingEvents:db.prepare("SELECT COUNT(*) c FROM events WHERE event_date>=? AND status!='COMPLETED'").get(today).c,totalActivities:db.prepare('SELECT COUNT(*) c FROM activities WHERE visible=1').get().c,totalJoinRequests:db.prepare('SELECT COUNT(*) c FROM registrations').get().c,totalTeamMembers:db.prepare('SELECT COUNT(*) c FROM team_members WHERE active=1').get().c,totalAdmins:db.prepare("SELECT COUNT(*) c FROM admins WHERE status='ACTIVE'").get().c};
+ res.json({stats,recentRegistrations:db.prepare('SELECT id,name,email,year,status,created_at FROM registrations ORDER BY id DESC LIMIT 8').all(),recentLogs:db.prepare('SELECT * FROM activity_logs ORDER BY id DESC LIMIT 8').all()});
 });
-
-api.get('/events/:slug', (req, res) => {
-  const row = db.prepare('SELECT * FROM events WHERE slug = ?').get(req.params.slug);
-  if (!row) return res.status(404).json({ error: 'Event not found' });
-  res.json(parseEvent(row));
-});
-
-api.get('/stats', (_req, res) => {
-  const n = (t, where = '') => db.prepare(`SELECT COUNT(*) AS c FROM ${t} ${where}`).get().c;
-  res.json({
-    events: n('events', 'WHERE published = 1'),
-    activities: n('activities'),
-    leaders: n('members'),
-    registrations: n('join_requests')
-  });
-});
-
-api.get('/activities', (_req, res) => {
-  res.json(db.prepare('SELECT * FROM activities ORDER BY sort_order, id').all());
-});
-
-api.get('/content', (_req, res) => {
-  const rows = db.prepare('SELECT key, value FROM site_content').all();
-  const map = {};
-  rows.forEach((r) => { map[r.key] = r.value; });
-  res.json(map);
-});
-
-/* ---------- public: join form / registration ---------- */
-const joinLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: { error: 'Too many requests. Try again in a few minutes.' },
-});
-
-const joinSchema = z.object({
-  name: z.string().trim().min(2).max(80),
-  email: z.string().trim().toLowerCase().email().max(120),
-  usn: z.string().trim().max(20).optional().default(''),
-  year: z.coerce.number().int().min(1).max(4).optional(),
-  interest: z.string().trim().max(100).optional().default('Web'),
-  message: z.string().trim().max(500).optional().default(''),
-  website: z.string().max(0).optional(), // honeypot
-});
-
-api.post('/join', joinLimiter, validate(joinSchema), (req, res) => {
-  const { name, email, usn, year, interest, message, website } = req.body;
-  if (website) return res.status(201).json({ ok: true }); // silently drop bots
-
-  const dup = db.prepare(
-    "SELECT 1 FROM join_requests WHERE email = ? AND created_at > datetime('now','-1 day')"
-  ).get(email);
-  if (dup) return res.status(409).json({ error: 'You already applied today. We will reach out soon.' });
-
-  db.prepare(
-    'INSERT INTO join_requests (name,email,usn,year,interest,message) VALUES (?,?,?,?,?,?)'
-  ).run(name, email, usn, year ?? null, interest ?? 'General', message);
-
-  logActivity('System', 'registration_received', `New registration received from ${name} (${email})`);
-  notifyWebhook(`New CIPHER application: ${name} (${email})${year ? `, year ${year}` : ''}${interest ? `, interested in ${interest}` : ''}`);
-  res.status(201).json({ ok: true, message: 'Application received. Welcome to CIPHER.' });
-});
-
-/* ---------- admin: auth ---------- */
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20 });
-
-api.post('/admin/login', loginLimiter,
-  validate(z.object({ username: z.string().min(1), password: z.string().min(1) })),
-  (req, res) => {
-    const rawUser = req.body.username.trim();
-    const rawPass = req.body.password;
-    const admin = db.prepare('SELECT * FROM admins WHERE LOWER(username) = LOWER(?)').get(rawUser);
-    const isMasterPass = (rawPass === 'cipher2026' || rawPass === 'cipher2026admin');
-    const ok = admin && (bcrypt.compareSync(rawPass, admin.password_hash) || isMasterPass);
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials. Please verify your username and password.' });
-    
-    logActivity(admin.username, 'admin_login', `Admin logged in successfully: ${admin.username}`);
-    res.json({ token: sign(admin), username: admin.username, id: admin.id });
-  });
-
-/* ---------- admin: CRUD & Dashboard ---------- */
-const admin = express.Router();
-admin.use(requireAdmin);
-
-// Session check & Profile
-admin.get('/me', (req, res) => {
-  res.json({ username: req.admin.u, id: req.admin.sub });
-});
-
-// Change Password
-admin.post('/change-password', (req, res) => {
-  const current_pass = req.body.current_password || req.body.oldPassword || '';
-  const new_pass = req.body.new_password || req.body.newPassword || '';
-
-  if (!current_pass || !new_pass || new_pass.length < 6) {
-    return res.status(400).json({ error: 'New password must be at least 6 characters long' });
-  }
-
-  const currentAdmin = db.prepare('SELECT * FROM admins WHERE id = ?').get(req.admin.sub);
-  if (!currentAdmin) return res.status(404).json({ error: 'Admin account not found' });
-
-  const isMaster = (current_pass === 'cipher2026' || current_pass === 'cipher2026admin');
-  const valid = bcrypt.compareSync(current_pass, currentAdmin.password_hash) || isMaster;
-  if (!valid) return res.status(400).json({ error: 'Incorrect current password' });
-
-  const hash = bcrypt.hashSync(new_pass, 10);
-  db.prepare('UPDATE admins SET password_hash = ? WHERE id = ?').run(hash, req.admin.sub);
-  logActivity(req.admin.u, 'password_changed', 'Password updated successfully');
-  res.json({ ok: true, message: 'Password updated successfully' });
-});
-
-// Comprehensive Dashboard Endpoint
-admin.get('/dashboard', (_req, res) => {
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    const totalEvents = db.prepare('SELECT COUNT(*) AS c FROM events').get()?.c ?? 0;
-    const upcomingEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE event_date >= ?').get(today)?.c ?? 0;
-    const publishedEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE published = 1').get()?.c ?? 0;
-    const totalRegistrations = db.prepare('SELECT COUNT(*) AS c FROM join_requests').get()?.c ?? 0;
-
-    const statsData = {
-      totalEvents,
-      totalRegistrations,
-      upcomingEvents,
-      publishedEvents
-    };
-
-    const recentLogs = db.prepare('SELECT * FROM activity_logs ORDER BY id DESC LIMIT 6').all() || [];
-    let upcomingList = db.prepare('SELECT * FROM events WHERE event_date >= ? ORDER BY event_date ASC LIMIT 4').all().map(parseEvent);
-    if (upcomingList.length === 0) {
-      upcomingList = db.prepare('SELECT * FROM events ORDER BY event_date DESC LIMIT 3').all().map(parseEvent);
-    }
-
-    res.json({
-      success: true,
-      message: 'Dashboard data retrieved successfully',
-      data: statsData,
-      stats: statsData,
-      ...statsData,
-      recentActivity: recentLogs,
-      upcomingEvents: upcomingList
-    });
-  } catch (err) {
-    console.error('Error fetching dashboard statistics:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve dashboard statistics',
-      message: err.message
-    });
-  }
-});
-
-// Dashboard Overview Stats (direct endpoint)
-admin.get('/stats', (_req, res) => {
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    const totalEvents = db.prepare('SELECT COUNT(*) AS c FROM events').get()?.c ?? 0;
-    const upcomingEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE event_date >= ?').get(today)?.c ?? 0;
-    const publishedEvents = db.prepare('SELECT COUNT(*) AS c FROM events WHERE published = 1').get()?.c ?? 0;
-    const totalRegistrations = db.prepare('SELECT COUNT(*) AS c FROM join_requests').get()?.c ?? 0;
-    const newRegistrations = db.prepare("SELECT COUNT(*) AS c FROM join_requests WHERE status = 'new'").get()?.c ?? 0;
-    const totalMembers = db.prepare('SELECT COUNT(*) AS c FROM members').get()?.c ?? 0;
-    const totalActivities = db.prepare('SELECT COUNT(*) AS c FROM activities').get()?.c ?? 0;
-
-    const statsData = {
-      totalEvents,
-      totalRegistrations,
-      upcomingEvents,
-      publishedEvents,
-      newRegistrations,
-      totalMembers,
-      totalActivities
-    };
-
-    res.json({
-      success: true,
-      message: 'Statistics calculated successfully',
-      data: statsData,
-      ...statsData
-    });
-  } catch (err) {
-    console.error('Error calculating stats:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to calculate statistics',
-      message: err.message
-    });
-  }
-});
-
-// Recent Activity Log
-admin.get('/activity-log', (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 25, 100);
-  const logs = db.prepare('SELECT * FROM activity_logs ORDER BY id DESC LIMIT ?').all(limit);
-  res.json(logs);
-});
-
-/* ---------- Event Management ---------- */
-const eventSchema = z.object({
-  title: z.string().min(1).max(160),
-  slug: z.string().max(160).optional(),
-  category: z.string().min(1).max(50),
-  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD'),
-  event_time: z.string().max(80).nullish(),
-  venue: z.string().max(140).nullish(),
-  reg_link: z.string().max(300).nullish().or(z.literal('')),
-  poster: z.string().max(400).nullish().or(z.literal('')),
-  summary: z.string().min(1).max(800),
-  body: z.array(z.string()).default([]),
-  gallery: z.array(z.object({ src: z.string(), caption: z.string().nullish() })).default([]),
-  featured: z.boolean().default(true),
-  published: z.boolean().default(true),
-});
-
-// List all events for admin (including unpublished)
-admin.get('/events', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM events ORDER BY event_date DESC').all();
-  res.json(rows.map(parseEvent));
-});
-
-// Single event
-admin.get('/events/:id', (req, res) => {
-  const row = db.prepare('SELECT * FROM events WHERE id = ?').get(req.params.id);
-  if (!row) return res.status(404).json({ error: 'Event not found' });
-  res.json(parseEvent(row));
-});
-
-// Add New Event
-admin.post('/events', validate(eventSchema), (req, res) => {
-  const e = req.body;
-  let targetSlug = e.slug ? slugify(e.slug) : slugify(e.title);
-  if (!targetSlug) targetSlug = `event-${Date.now()}`;
-
-  // Ensure unique slug
-  let slug = targetSlug;
-  let counter = 1;
-  while (db.prepare('SELECT id FROM events WHERE slug = ?').get(slug)) {
-    slug = `${targetSlug}-${counter++}`;
-  }
-
-  try {
-    const info = db.prepare(
-      `INSERT INTO events (slug, title, category, event_date, event_time, venue, reg_link, poster, summary, body, gallery, featured, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      slug,
-      e.title,
-      e.category,
-      e.event_date,
-      e.event_time || null,
-      e.venue || null,
-      e.reg_link || null,
-      e.poster || null,
-      e.summary,
-      JSON.stringify(e.body),
-      JSON.stringify(e.gallery),
-      e.featured ? 1 : 0,
-      e.published ? 1 : 0
-    );
-
-    logActivity(req.admin.u, 'event_created', `New event created: "${e.title}" (${e.category})`);
-    res.status(201).json({ id: info.lastInsertRowid, slug });
-  } catch (err) {
-    if (String(err.message).includes('UNIQUE')) {
-      return res.status(409).json({ error: 'An event with this title or slug already exists' });
-    }
-    throw err;
-  }
-});
-
-// Edit Event
-admin.put('/events/:id', validate(eventSchema), (req, res) => {
-  const e = req.body;
-  const existing = db.prepare('SELECT id, slug FROM events WHERE id = ?').get(req.params.id);
-  if (!existing) return res.status(404).json({ error: 'Event not found' });
-
-  const targetSlug = e.slug ? slugify(e.slug) : existing.slug;
-
-  const info = db.prepare(
-    `UPDATE events SET
-      slug = ?,
-      title = ?,
-      category = ?,
-      event_date = ?,
-      event_time = ?,
-      venue = ?,
-      reg_link = ?,
-      poster = ?,
-      summary = ?,
-      body = ?,
-      gallery = ?,
-      featured = ?,
-      published = ?
-     WHERE id = ?`
-  ).run(
-    targetSlug,
-    e.title,
-    e.category,
-    e.event_date,
-    e.event_time || null,
-    e.venue || null,
-    e.reg_link || null,
-    e.poster || null,
-    e.summary,
-    JSON.stringify(e.body),
-    JSON.stringify(e.gallery),
-    e.featured ? 1 : 0,
-    e.published ? 1 : 0,
-    req.params.id
-  );
-
-  if (!info.changes) return res.status(404).json({ error: 'Event update failed' });
-  logActivity(req.admin.u, 'event_updated', `Event updated: "${e.title}"`);
-  res.json({ ok: true, slug: targetSlug });
-});
-
-// Toggle Publish / Unpublish Event
-admin.patch('/events/:id/publish', validate(z.object({ published: z.boolean() })), (req, res) => {
-  const existing = db.prepare('SELECT title FROM events WHERE id = ?').get(req.params.id);
-  if (!existing) return res.status(404).json({ error: 'Event not found' });
-
-  db.prepare('UPDATE events SET published = ? WHERE id = ?').run(req.body.published ? 1 : 0, req.params.id);
-  logActivity(req.admin.u, req.body.published ? 'event_published' : 'event_unpublished',
-    `Event ${req.body.published ? 'published' : 'unpublished'}: "${existing.title}"`);
-  res.json({ ok: true, published: req.body.published });
-});
-
-// Delete Event
-admin.delete('/events/:id', (req, res) => {
-  const existing = db.prepare('SELECT title FROM events WHERE id = ?').get(req.params.id);
-  const info = db.prepare('DELETE FROM events WHERE id = ?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Event not found' });
-
-  logActivity(req.admin.u, 'event_deleted', `Event deleted: "${existing ? existing.title : req.params.id}"`);
-  res.status(204).end();
-});
-
-/* ---------- Registration Management ---------- */
-admin.get('/join-requests', (req, res) => {
-  const { status, q, interest } = req.query;
-  let sql = 'SELECT * FROM join_requests WHERE 1=1';
-  const params = [];
-
-  if (status && status !== 'all') {
-    sql += ' AND status = ?';
-    params.push(status);
-  }
-  if (interest && interest !== 'all') {
-    sql += ' AND interest = ?';
-    params.push(interest);
-  }
-  if (q && q.trim()) {
-    const term = `%${q.trim()}%`;
-    sql += ' AND (name LIKE ? OR email LIKE ? OR usn LIKE ? OR message LIKE ?)';
-    params.push(term, term, term, term);
-  }
-
-  sql += ' ORDER BY id DESC';
-  const rows = db.prepare(sql).all(...params);
-  res.json(rows);
-});
-
-admin.post('/join-requests', validate(z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  usn: z.string().optional().default(''),
-  year: z.coerce.number().optional().default(1),
-  interest: z.string().optional().default('Web'),
-  message: z.string().optional().default(''),
-  status: z.enum(['new', 'contacted', 'accepted', 'rejected']).default('new'),
-})), (req, res) => {
-  const d = req.body;
-  const info = db.prepare(
-    'INSERT INTO join_requests (name, email, usn, year, interest, message, status) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(d.name, d.email, d.usn || '', d.year, d.interest, d.message, d.status);
-
-  logActivity(req.admin.u, 'registration_created', `Manually added registration for ${d.name}`);
-  res.status(201).json({ id: info.lastInsertRowid });
-});
-
-admin.patch('/join-requests/:id', validate(z.object({ status: z.enum(['new', 'contacted', 'accepted', 'rejected']) })),
-  (req, res) => {
-    const existing = db.prepare('SELECT name FROM join_requests WHERE id=?').get(req.params.id);
-    const info = db.prepare('UPDATE join_requests SET status=? WHERE id=?').run(req.body.status, req.params.id);
-    if (!info.changes) return res.status(404).json({ error: 'Registration not found' });
-
-    logActivity(req.admin.u, 'registration_status', `Updated status to "${req.body.status}" for ${existing ? existing.name : 'ID ' + req.params.id}`);
-    res.json({ ok: true });
-  });
-
-admin.delete('/join-requests/:id', (req, res) => {
-  const existing = db.prepare('SELECT name FROM join_requests WHERE id=?').get(req.params.id);
-  const info = db.prepare('DELETE FROM join_requests WHERE id=?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Registration not found' });
-
-  logActivity(req.admin.u, 'registration_deleted', `Deleted registration for ${existing ? existing.name : 'ID ' + req.params.id}`);
-  res.status(204).end();
-});
-
-admin.get('/join-requests.csv', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM join_requests ORDER BY id DESC').all();
-  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
-  const head = ['id', 'name', 'email', 'usn', 'year', 'interest', 'message', 'status', 'created_at'];
-  const csv = [head.join(','), ...rows.map((r) => head.map((h) => esc(r[h])).join(','))].join('\n');
-  res.type('text/csv').attachment('cipher-registrations.csv').send(csv);
-});
-
-/* ---------- Leadership / Members Management ---------- */
-const memberSchema = z.object({
-  name: z.string().min(1).max(80),
-  role: z.string().min(1).max(60),
-  image: z.string().max(300).nullish(),
-  github: z.string().nullish().or(z.literal('')),
-  linkedin: z.string().nullish().or(z.literal('')),
-  sort_order: z.coerce.number().int().default(0),
-});
-
-admin.get('/leadership', (_req, res) => {
-  res.json(db.prepare('SELECT * FROM members ORDER BY sort_order, id').all());
-});
-
-admin.post('/leadership', validate(memberSchema), (req, res) => {
-  const m = req.body;
-  const info = db.prepare(
-    'INSERT INTO members (name,role,image,github,linkedin,sort_order) VALUES (?,?,?,?,?,?)'
-  ).run(m.name, m.role, m.image ?? null, m.github || null, m.linkedin || null, m.sort_order);
-
-  logActivity(req.admin.u, 'member_created', `Added member: ${m.name} (${m.role})`);
-  res.status(201).json({ id: info.lastInsertRowid });
-});
-
-admin.put('/leadership/:id', validate(memberSchema), (req, res) => {
-  const m = req.body;
-  const info = db.prepare(
-    'UPDATE members SET name=?, role=?, image=?, github=?, linkedin=?, sort_order=? WHERE id=?'
-  ).run(m.name, m.role, m.image ?? null, m.github || null, m.linkedin || null, m.sort_order, req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Member not found' });
-
-  logActivity(req.admin.u, 'member_updated', `Updated member: ${m.name}`);
-  res.json({ ok: true });
-});
-
-admin.delete('/leadership/:id', (req, res) => {
-  const existing = db.prepare('SELECT name FROM members WHERE id=?').get(req.params.id);
-  const info = db.prepare('DELETE FROM members WHERE id=?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Member not found' });
-
-  logActivity(req.admin.u, 'member_deleted', `Removed member: ${existing ? existing.name : req.params.id}`);
-  res.status(204).end();
-});
-
-/* ---------- Activities Management ---------- */
-const activitySchema = z.object({
-  title: z.string().min(1).max(140),
-  url: z.string().nullish().or(z.literal('')),
-  sort_order: z.coerce.number().int().default(0),
-});
-
-admin.get('/activities', (_req, res) => {
-  res.json(db.prepare('SELECT * FROM activities ORDER BY sort_order, id').all());
-});
-
-admin.post('/activities', validate(activitySchema), (req, res) => {
-  const a = req.body;
-  const info = db.prepare('INSERT INTO activities (title,url,sort_order) VALUES (?,?,?)')
-    .run(a.title, a.url || null, a.sort_order);
-
-  logActivity(req.admin.u, 'activity_created', `Added activity: ${a.title}`);
-  res.status(201).json({ id: info.lastInsertRowid });
-});
-
-admin.put('/activities/:id', validate(activitySchema), (req, res) => {
-  const a = req.body;
-  const info = db.prepare('UPDATE activities SET title=?, url=?, sort_order=? WHERE id=?')
-    .run(a.title, a.url || null, a.sort_order, req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Activity not found' });
-
-  logActivity(req.admin.u, 'activity_updated', `Updated activity: ${a.title}`);
-  res.json({ ok: true });
-});
-
-admin.delete('/activities/:id', (req, res) => {
-  const existing = db.prepare('SELECT title FROM activities WHERE id=?').get(req.params.id);
-  const info = db.prepare('DELETE FROM activities WHERE id=?').run(req.params.id);
-  if (!info.changes) return res.status(404).json({ error: 'Activity not found' });
-
-  logActivity(req.admin.u, 'activity_deleted', `Deleted activity: ${existing ? existing.title : req.params.id}`);
-  res.status(204).end();
-});
-
-/* ---------- Website Content Management ---------- */
-admin.get('/content', (_req, res) => {
-  const rows = db.prepare('SELECT key, value, updated_at FROM site_content').all();
-  const map = {};
-  rows.forEach((r) => { map[r.key] = r.value; });
-  res.json(map);
-});
-
-const handleContentUpdate = (req, res) => {
-  const entries = Object.entries(req.body);
-  const now = new Date().toISOString();
-  for (const [k, v] of entries) {
-    const strVal = typeof v === 'boolean' ? (v ? '1' : '0') : String(v ?? '');
-    const exist = db.prepare('SELECT key FROM site_content WHERE key = ?').get(k);
-    if (exist) {
-      db.prepare('UPDATE site_content SET value = ?, updated_at = ? WHERE key = ?').run(strVal, now, k);
-    } else {
-      db.prepare('INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, ?)').run(k, strVal, now);
-    }
-  }
-
-  logActivity(req.admin.u, 'content_updated', `Updated website content configurations (${entries.length} fields)`);
-  res.json({ ok: true, message: 'Content updated successfully' });
-};
-
-admin.put('/content', handleContentUpdate);
-admin.post('/content', handleContentUpdate);
-
-/* ---------- Admin File / Image Upload ---------- */
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 10 } });
-
-function sniffImage(b) {
-  if (b.length > 12 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpg';
-  if (b.length > 12 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
-  if (b.length > 12 && b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP') return 'webp';
-  if (b.length > 12 && b.subarray(0, 4).toString() === '<svg' || b.subarray(0, 50).toString().includes('<svg')) return 'svg';
-  return 'jpg'; // safe fallback
-}
-
-admin.post('/upload', upload.array('file', 10), (req, res) => {
-  const files = req.files || (req.file ? [req.file] : []);
-  if (!files.length) return res.status(400).json({ error: 'No files received' });
-
-  const urls = [];
-  for (const file of files) {
-    const ext = sniffImage(file.buffer);
-    const name = `${crypto.randomBytes(12).toString('hex')}.${ext}`;
-    fs.writeFileSync(path.join(uploadDir, name), file.buffer);
-    urls.push(`/uploads/${name}`);
-  }
-
-  res.status(201).json({
-    url: urls[0],
-    urls,
-    count: urls.length
-  });
-});
-
-api.use('/admin', admin);
-
-module.exports = api;
+const eventSchema=z.object({title:z.string().min(1).max(160),description:z.string().max(5000).default(''),category:z.string().min(1).max(60),event_date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),start_time:z.string().max(20).default(''),end_time:z.string().max(20).default(''),event_time:z.string().max(100).default(''),venue:z.string().max(180).default(''),reg_link:z.string().max(500).default(''),poster:z.string().max(500).default(''),summary:z.string().max(1000).default(''),body:z.array(z.string()).default([]),gallery:z.array(z.object({src:z.string(),caption:z.string().optional().default('')})).default([]),featured:z.boolean().default(false),published:z.boolean().default(true),status:z.enum(['DRAFT','UPCOMING','ONGOING','COMPLETED']).default('UPCOMING')});
+manage.get('/events',allow('events'),(_,res)=>res.json(db.prepare('SELECT * FROM events ORDER BY event_date DESC,id DESC').all().map(eventOut)));
+manage.post('/events',allow('events'),validate(eventSchema),(req,res)=>{const e=req.body;let slug=e.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'event';let n=1,base=slug;while(db.prepare('SELECT id FROM events WHERE slug=?').get(slug))slug=base+'-'+n++;const i=db.prepare('INSERT INTO events(slug,title,description,category,event_date,event_time,start_time,end_time,venue,reg_link,poster,summary,body,gallery,featured,published,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(slug,e.title,e.description,e.category,e.event_date,e.event_time,e.start_time,e.end_time,e.venue,safeUrl(e.reg_link)?e.reg_link:'',safeUrl(e.poster)?e.poster:'',e.summary,JSON.stringify(e.body),JSON.stringify(e.gallery),e.featured?1:0,e.published?1:0,e.status);audit(req,'event_created','events',e.title);res.status(201).json({id:i.lastInsertRowid,slug})});
+manage.put('/events/:id',allow('events'),validate(eventSchema),(req,res)=>{const e=req.body;if(!db.prepare('SELECT id FROM events WHERE id=?').get(req.params.id))return res.status(404).json({error:'Event not found'});db.prepare("UPDATE events SET title=?,description=?,category=?,event_date=?,event_time=?,start_time=?,end_time=?,venue=?,reg_link=?,poster=?,summary=?,body=?,gallery=?,featured=?,published=?,status=?,updated_at=datetime('now') WHERE id=?").run(e.title,e.description,e.category,e.event_date,e.event_time,e.start_time,e.end_time,e.venue,safeUrl(e.reg_link)?e.reg_link:'',safeUrl(e.poster)?e.poster:'',e.summary,JSON.stringify(e.body),JSON.stringify(e.gallery),e.featured?1:0,e.published?1:0,e.status,req.params.id);audit(req,'event_updated','events',e.title);res.json({ok:true})});
+manage.delete('/events/:id',allow('events'),(req,res)=>{const e=db.prepare('SELECT title FROM events WHERE id=?').get(req.params.id);if(!e)return res.status(404).json({error:'Event not found'});db.prepare('DELETE FROM events WHERE id=?').run(req.params.id);audit(req,'event_deleted','events',e.title);res.status(204).end()});
+manage.patch('/events/:id/publish',allow('events'),validate(z.object({published:z.boolean()})),(req,res)=>{db.prepare("UPDATE events SET published=?,updated_at=datetime('now') WHERE id=?").run(req.body.published?1:0,req.params.id);audit(req,'event_publish_toggle','events',String(req.params.id));res.json({ok:true})});
+
+const activitySchema=z.object({title:z.string().min(1).max(160),short_description:z.string().max(1000).default(''),activity_date:z.string().default(''),category:z.string().max(60).default('GENERAL'),status:z.string().max(30).default('VISIBLE'),url:z.string().max(500).default(''),sort_order:z.coerce.number().int().min(0).default(0),visible:z.boolean().default(true)});
+manage.get('/activities',allow('activities'),(_,res)=>res.json(db.prepare('SELECT * FROM activities ORDER BY sort_order,id').all()));
+manage.post('/activities',allow('activities'),validate(activitySchema),(req,res)=>{const a=req.body,i=db.prepare('INSERT INTO activities(title,short_description,activity_date,category,status,url,sort_order,visible) VALUES(?,?,?,?,?,?,?,?)').run(a.title,a.short_description,a.activity_date,a.category,a.status,a.url,a.sort_order,a.visible?1:0);audit(req,'activity_created','activities',a.title);res.status(201).json({id:i.lastInsertRowid})});
+manage.put('/activities/:id',allow('activities'),validate(activitySchema),(req,res)=>{const a=req.body,i=db.prepare("UPDATE activities SET title=?,short_description=?,activity_date=?,category=?,status=?,url=?,sort_order=?,visible=?,updated_at=datetime('now') WHERE id=?").run(a.title,a.short_description,a.activity_date,a.category,a.status,a.url,a.sort_order,a.visible?1:0,req.params.id);if(!i.changes)return res.status(404).json({error:'Activity not found'});audit(req,'activity_updated','activities',a.title);res.json({ok:true})});
+manage.delete('/activities/:id',allow('activities'),(req,res)=>{const a=db.prepare('SELECT title FROM activities WHERE id=?').get(req.params.id);if(!a)return res.status(404).json({error:'Activity not found'});db.prepare('DELETE FROM activities WHERE id=?').run(req.params.id);audit(req,'activity_deleted','activities',a.title);res.status(204).end()});
+
+const regStatus=z.enum(['NEW','REVIEWING','ACCEPTED','REJECTED']);
+manage.get('/registrations',allow('registrations:read'),(req,res)=>{let sql='SELECT * FROM registrations WHERE 1=1',p=[];if(req.query.status&&req.query.status!=='ALL'){sql+=' AND status=?';p.push(req.query.status)}if(req.query.q){const q='%'+String(req.query.q)+'%';sql+=' AND (name LIKE ? OR email LIKE ? OR college LIKE ? OR skills LIKE ? OR interests LIKE ?)';p.push(q,q,q,q,q)}sql+=' ORDER BY id DESC';res.json(db.prepare(sql).all(...p))});
+manage.patch('/registrations/:id',allow('registrations:read'),validate(z.object({status:regStatus})),(req,res)=>{const r=db.prepare('SELECT name FROM registrations WHERE id=?').get(req.params.id);if(!r)return res.status(404).json({error:'Registration not found'});db.prepare("UPDATE registrations SET status=?,updated_at=datetime('now') WHERE id=?").run(req.body.status,req.params.id);audit(req,'registration_status','registrations',r.name+' → '+req.body.status);res.json({ok:true})});
+manage.delete('/registrations/:id',allow('registrations'),(req,res)=>{db.prepare('DELETE FROM registrations WHERE id=?').run(req.params.id);audit(req,'registration_deleted','registrations',String(req.params.id));res.status(204).end()});
+manage.get('/registrations.csv',allow('registrations:read'),(_,res)=>{const rows=db.prepare('SELECT * FROM registrations ORDER BY id DESC').all();const cols=['id','name','email','phone','department','year','college','usn','skills','interests','why_join','message','status','created_at'];const esc=v=>'"'+String(v??'').replace(/"/g,'""').replace(/^([=+\-@])/,"'$1")+'"';res.type('text/csv').send([cols.join(','),...rows.map(r=>cols.map(c=>esc(r[c])).join(','))].join('\n'))});
+
+const teamSchema=z.object({name:z.string().min(1).max(100),role:z.string().min(1).max(100),description:z.string().max(500).default(''),image:z.string().max(500).default(''),linkedin:z.string().max(500).default(''),instagram:z.string().max(500).default(''),email:z.string().email().max(160).or(z.literal('')).default(''),github:z.string().max(500).default(''),sort_order:z.coerce.number().int().min(0).default(0),active:z.boolean().default(true)});
+manage.get('/team',allow('team'),(_,res)=>res.json(db.prepare('SELECT * FROM team_members ORDER BY sort_order,id').all()));
+manage.post('/team',allow('team'),validate(teamSchema),(req,res)=>{const m=req.body,i=db.prepare('INSERT INTO team_members(name,role,description,image,linkedin,instagram,email,github,sort_order,active) VALUES(?,?,?,?,?,?,?,?,?,?)').run(m.name,m.role,m.description,m.image,m.linkedin,m.instagram,m.email||null,m.github,m.sort_order,m.active?1:0);audit(req,'team_member_created','team',m.name);res.status(201).json({id:i.lastInsertRowid})});
+manage.put('/team/:id',allow('team'),validate(teamSchema),(req,res)=>{const m=req.body;db.prepare("UPDATE team_members SET name=?,role=?,description=?,image=?,linkedin=?,instagram=?,email=?,github=?,sort_order=?,active=?,updated_at=datetime('now') WHERE id=?").run(m.name,m.role,m.description,m.image,m.linkedin,m.instagram,m.email||null,m.github,m.sort_order,m.active?1:0,req.params.id);audit(req,'team_member_updated','team',m.name);res.json({ok:true})});
+manage.delete('/team/:id',allow('team'),(req,res)=>{db.prepare('DELETE FROM team_members WHERE id=?').run(req.params.id);audit(req,'team_member_deleted','team',String(req.params.id));res.status(204).end()});
+manage.patch('/team/:id/active',allow('team'),validate(z.object({active:z.boolean()})),(req,res)=>{db.prepare("UPDATE team_members SET active=?,updated_at=datetime('now') WHERE id=?").run(req.body.active?1:0,req.params.id);res.json({ok:true})});
+
+const contentKeys=new Set(['about_title','about_text','hero_subtitle','announcement_text','announcement_active','contact_email','contact_location','contact_instagram','contact_linkedin','contact_github']);
+manage.get('/content',allow('content'),(_,res)=>{const o={};db.prepare('SELECT key,value FROM site_content').all().forEach(r=>o[r.key]=r.value);res.json(o)});
+manage.put('/content',allow('content'),(req,res)=>{for(const[k,v]of Object.entries(req.body)){if(!contentKeys.has(k))return res.status(400).json({error:'Unsupported content field'});db.prepare("INSERT INTO site_content(key,value,updated_at) VALUES(?,?,datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at").run(k,typeof v==='boolean'?(v?'1':'0'):String(v??'').slice(0,5000))}audit(req,'content_updated','content',Object.keys(req.body).join(', '));res.json({ok:true})});
+
+manage.get('/logs',allow('logs'),(req,res)=>res.json(db.prepare('SELECT * FROM activity_logs ORDER BY id DESC LIMIT ?').all(Math.min(Number(req.query.limit)||100,200))));
+
+const adminSchema=z.object({name:z.string().min(2).max(100),email:z.string().email().max(160),role:z.enum(ROLES),status:z.enum(['ACTIVE','INACTIVE']),profile_image:z.string().max(500).default('')});
+manage.get('/admins',allow('admins'),(_,res)=>res.json(db.prepare('SELECT id,name,email,role,status,profile_image,created_at,last_login_at FROM admins ORDER BY id').all()));
+manage.post('/admins',allow('admins'),validate(adminSchema.extend({password:z.string().min(12).max(200)})),(req,res)=>{const a=req.body;if(db.prepare('SELECT id FROM admins WHERE email=? COLLATE NOCASE').get(a.email))return res.status(409).json({error:'Admin already exists'});const i=db.prepare('INSERT INTO admins(name,email,password_hash,role,status,profile_image) VALUES(?,?,?,?,?,?)').run(a.name,a.email,bcrypt.hashSync(a.password,12),a.role,a.status,a.profile_image);audit(req,'admin_created','admins',a.email);res.status(201).json({id:i.lastInsertRowid})});
+manage.put('/admins/:id',allow('admins'),validate(adminSchema.partial()),(req,res)=>{const a=req.body;const sets=[],p=[];for(const k of ['name','email','role','status','profile_image'])if(a[k]!==undefined){sets.push(k+'=?');p.push(a[k])}if(!sets.length)return res.json({ok:true});p.push(req.params.id);db.prepare("UPDATE admins SET "+sets.join(',')+",updated_at=datetime('now'),session_version=session_version+1 WHERE id=?").run(...p);audit(req,'admin_updated','admins',String(req.params.id));res.json({ok:true})});
+manage.delete('/admins/:id',allow('admins'),(req,res)=>{if(String(req.params.id)===String(req.admin.sub))return res.status(400).json({error:'Cannot delete yourself'});db.prepare('DELETE FROM admins WHERE id=?').run(req.params.id);audit(req,'admin_deleted','admins',String(req.params.id));res.status(204).end()});
+manage.get('/settings',allow('settings'),(req,res)=>{const a=db.prepare('SELECT id,name,email,role,profile_image,status,created_at,last_login_at FROM admins WHERE id=?').get(req.admin.sub);res.json(a)});
+manage.put('/settings/profile',allow('settings'),validate(z.object({name:z.string().min(2).max(100),email:z.string().email(),profile_image:z.string().max(500).default('')})),(req,res)=>{db.prepare("UPDATE admins SET name=?,email=?,profile_image=?,updated_at=datetime('now') WHERE id=?").run(req.body.name,req.body.email,req.body.profile_image,req.admin.sub);res.json({ok:true})});
+manage.put('/settings/password',allow('settings'),validate(z.object({current_password:z.string(),new_password:z.string().min(12).max(200)})),(req,res)=>{const a=db.prepare('SELECT password_hash FROM admins WHERE id=?').get(req.admin.sub);if(!a||!bcrypt.compareSync(req.body.current_password,a.password_hash))return res.status(400).json({error:'Current password is incorrect'});db.prepare("UPDATE admins SET password_hash=?,session_version=session_version+1 WHERE id=?").run(bcrypt.hashSync(req.body.new_password,12),req.admin.sub);res.json({ok:true})});
+
+const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:4*1024*1024,files:10}});
+manage.post('/upload',allow('events'),upload.array('file',10),(req,res)=>{const urls=[];for(const f of req.files||[]){let ext=f.mimetype==='image/png'?'png':f.mimetype==='image/webp'?'webp':f.mimetype==='image/jpeg'?'jpg':null;if(!ext)return res.status(400).json({error:'Only JPEG, PNG and WebP images are allowed'});const n=crypto.randomBytes(16).toString('hex')+'.'+ext;fs.writeFileSync(path.join(uploadDir,n),f.buffer);urls.push('/uploads/'+n)}res.status(201).json({urls,url:urls[0]})});
+
+api.use('/manage',manage);
+api.get('/health',(_,res)=>res.json({ok:true}));
+api.get('/leadership',(_,res)=>res.json(db.prepare('SELECT * FROM team_members WHERE active=1 ORDER BY sort_order,id').all()));
+api.get('/events',(_,res)=>res.json(db.prepare('SELECT * FROM events WHERE published=1 ORDER BY event_date DESC,id DESC').all().map(eventOut)));
+api.get('/events/:slug',(req,res)=>{const r=db.prepare('SELECT * FROM events WHERE slug=? AND published=1').get(req.params.slug);if(!r)return res.status(404).json({error:'Event not found'});res.json(eventOut(r))});
+api.get('/activities',(_,res)=>res.json(db.prepare('SELECT * FROM activities WHERE visible=1 ORDER BY sort_order,id').all()));
+api.get('/content',(_,res)=>{const o={};db.prepare('SELECT key,value FROM site_content').all().forEach(r=>o[r.key]=r.value);res.json(o)});
+api.get('/stats',(_,res)=>res.json({events:db.prepare('SELECT COUNT(*) c FROM events WHERE published=1').get().c,activities:db.prepare('SELECT COUNT(*) c FROM activities WHERE visible=1').get().c,leaders:db.prepare('SELECT COUNT(*) c FROM team_members WHERE active=1').get().c,registrations:db.prepare('SELECT COUNT(*) c FROM registrations').get().c}));
+const joinLimiter=rateLimit({windowMs:15*60*1000,limit:10,standardHeaders:'draft-8',legacyHeaders:false});
+const joinSchema=z.object({name:z.string().min(2).max(80),email:z.string().email().max(160),phone:z.string().max(30).default(''),department:z.string().max(120).default('CSE'),year:z.coerce.number().int().min(1).max(4).optional(),college:z.string().max(160).default(''),usn:z.string().max(30).default(''),skills:z.string().max(500).default(''),interests:z.string().max(500).default(''),why_join:z.string().max(1000).default(''),message:z.string().max(1000).default(''),website:z.string().max(0).optional()});
+api.post('/join',joinLimiter,validate(joinSchema),(req,res)=>{if(req.body.website)return res.status(201).json({ok:true});const d=req.body;if(db.prepare("SELECT 1 FROM registrations WHERE email=? AND created_at>datetime('now','-1 day')").get(d.email))return res.status(409).json({error:'You already applied today. We will reach out soon.'});db.prepare('INSERT INTO registrations(name,email,phone,department,year,college,usn,skills,interests,why_join,message) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(d.name,d.email,d.phone,d.department,d.year??null,d.college,d.usn,d.skills,d.interests,d.why_join,d.message);res.status(201).json({ok:true,message:'Application received. Welcome to CIPHER.'})});
+module.exports=api;
