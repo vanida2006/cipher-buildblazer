@@ -1,1 +1,357 @@
-(()=>{const A=document.getElementById('manage-app');let me=null;const P={SUPER_ADMIN:['events','activities','registrations','team','content','gallery','logs','admins','settings'],EVENT_MANAGER:['events','registrations:read','gallery','activities:read'],CONTENT_MANAGER:['activities','registrations:read','team','content','settings']};const ok=p=>P[me?.role]?.includes(p);const api=async(p,o={})=>{const r=await fetch('/api/manage'+p,{credentials:'same-origin',...o,headers:{'Content-Type':'application/json',...(o.headers||{})},body:o.body&&typeof o.body!=='string'?JSON.stringify(o.body):o.body});const d=r.status===204?null:await r.json().catch(()=>({}));if(r.status===401){location='/manage/login';throw Error('Session expired')}if(!r.ok)throw Error(d.error||'Request failed');return d};const E=(t,a={},...c)=>{const n=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='text')n.textContent=v;else if(k==='className')n.className=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else if(v!==undefined)n.setAttribute(k,v)}c.flat().forEach(x=>x!=null&&n.append(x));return n};const F=(l,t='text',v='')=>{const w=E('label',{className:'field'},E('span',{text:l})),i=E(t==='textarea'?'textarea':'input',{type:t,value:v});w.append(i);return i};const badge=t=>E('span',{className:'badge',text:t});const shell=(title,sub,content)=>{const items=[['events','Events'],['activities','Activities'],['registrations','Registrations'],['team','Team'],['content','Content'],['gallery','Gallery'],['logs','Activity Logs'],['settings','Settings']];const n=E('div',{className:'nav'});n.append(E('button',{className:'on',text:'▦ Dashboard',onclick:()=>go('/manage/dashboard')}));items.filter(x=>ok(x[0])||ok(x[0]+':read')).forEach(x=>n.append(E('button',{text:x[1],onclick:()=>go('/manage/'+x[0])})));if(ok('admins'))n.append(E('button',{text:'Admin Users',onclick:()=>go('/manage/admins')}));A.replaceChildren(E('aside',{className:'m-side'},E('div',{className:'brand'},E('div',{text:'CIPHER'}),E('small',{text:'Management Portal'}),E('div',{className:'role',text:me.role})),n,E('button',{className:'logout',text:'Logout',onclick:async()=>{await api('/auth/logout',{method:'POST'});location='/manage/login'}})),E('main',{className:'main'},E('div',{className:'head'},E('small',{text:title.toUpperCase()}),E('h1',{text:title}),E('p',{text:sub})),content))};const login=()=>{const e=F('Administrator email','email'),p=F('Password','password'),err=E('div',{className:'error'}),f=E('form',{className:'card',onsubmit:async x=>{x.preventDefault();try{const r=await api('/auth/login',{method:'POST',body:{email:e.value,password:p.value}});me=r.admin;location='/manage/dashboard'}catch(z){err.textContent=z.message}}},E('img',{src:'/img/logo.jpg'}),E('h1',{text:'Management Portal'}),e,p,err,E('button',{className:'btn green',text:'LOGIN →',type:'submit'}));A.replaceChildren(E('div',{className:'login'},f))};const go=p=>{history.pushState({},'',p);render()};onpopstate=render;const dashboard=async()=>{const d=await api('/dashboard'),s=d.stats;const cards=Object.entries(s).map(([k,v])=>E('div',{className:'card stat'},E('b',{text:v}),E('span',{text:k.replace(/[A-Z]/g,m=>' '+m).toUpperCase()})));const t=E('table',{},E('tr',{},E('th',{text:'Name'}),E('th',{text:'Email'}),E('th',{text:'Year'}),E('th',{text:'Status'})),...d.recentRegistrations.map(r=>E('tr',{},E('td',{text:r.name}),E('td',{text:r.email}),E('td',{text:r.year||'—'}),E('td',{},badge(r.status)))));shell('CIPHER Control Center','Secure workspace for CIPHER website management.',E('div',{},E('div',{className:'stats'},cards),E('div',{className:'panel'},E('h3',{text:'Recent registrations'}),t),E('div',{className:'panel'},E('h3',{text:'Recent admin actions'}),...d.recentLogs.map(x=>E('p',{text:(x.admin_name||'System')+' — '+x.details}))));};async function list(type){const d=await api('/'+type);const p=E('div');d.forEach(r=>p.append(E('div',{className:'panel'},E('b',{text:r.title||r.name||r.email}),E('span',{text:'  '+(r.role||r.category||r.status||'')}))));shell(type[0].toUpperCase()+type.slice(1),'Manage '+type+'.',p)}async function render(){if(!me)return login();const p=location.pathname;if(p==='/manage'||p==='/manage/'||p==='/manage/login')return go('/manage/dashboard');try{if(p.includes('dashboard'))return dashboard();if(p.includes('events'))return list('events');if(p.includes('activities'))return list('activities');if(p.includes('registrations'))return list('registrations');if(p.includes('team'))return list('team');if(p.includes('content'))return list('content');if(p.includes('logs'))return list('logs');if(p.includes('admins')&&ok('admins'))return list('admins');return list('settings')}catch(e){shell('Error',e.message,E('div',{className:'panel',text:e.message}))}};(async()=>{try{me=(await api('/auth/me')).admin;render()}catch{login()}})()})();
+(() => {
+  const app = document.getElementById('manage-app');
+  let me = null;
+
+  const permissions = {
+    SUPER_ADMIN: ['events', 'activities', 'registrations', 'team', 'content', 'gallery', 'logs', 'admins', 'settings'],
+    EVENT_MANAGER: ['events', 'registrations:read', 'gallery', 'activities:read'],
+    CONTENT_MANAGER: ['activities', 'registrations:read', 'team', 'content', 'settings']
+  };
+
+  const can = (permission) => Boolean(me && permissions[me.role] && permissions[me.role].includes(permission));
+
+  async function api(path, options = {}) {
+    const request = { ...options, credentials: 'same-origin' };
+    request.headers = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    };
+
+    if (options.body && typeof options.body !== 'string') {
+      request.body = JSON.stringify(options.body);
+    }
+
+    const response = await fetch('/api/manage' + path, request);
+    const data = response.status === 204
+      ? null
+      : await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      me = null;
+      if (location.pathname !== '/manage/login') {
+        location.href = '/manage/login';
+      }
+      throw new Error('Session expired');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Request failed');
+    }
+
+    return data;
+  }
+
+  function el(tag, attrs = {}, ...children) {
+    const node = document.createElement(tag);
+
+    Object.entries(attrs).forEach(([key, value]) => {
+      if (key === 'text') {
+        node.textContent = value;
+      } else if (key === 'className') {
+        node.className = value;
+      } else if (key.startsWith('on') && typeof value === 'function') {
+        node.addEventListener(key.slice(2), value);
+      } else if (value !== undefined && value !== null) {
+        node.setAttribute(key, value);
+      }
+    });
+
+    children.flat().forEach((child) => {
+      if (child !== null && child !== undefined) {
+        node.append(child);
+      }
+    });
+
+    return node;
+  }
+
+  function field(label, type = 'text', value = '') {
+    const wrapper = el('label', { className: 'field' });
+    wrapper.append(el('span', { text: label }));
+
+    const input = el(type === 'textarea' ? 'textarea' : 'input', {
+      type: type === 'textarea' ? undefined : type,
+      value
+    });
+
+    wrapper.append(input);
+    return input;
+  }
+
+  function badge(text) {
+    return el('span', { className: 'badge', text });
+  }
+
+  function go(path) {
+    history.pushState({}, '', path);
+    render();
+  }
+
+  function shell(title, subtitle, content) {
+    const navigation = el('div', { className: 'nav' });
+
+    navigation.append(
+      el('button', {
+        className: location.pathname.includes('dashboard') ? 'on' : '',
+        text: '▦ Dashboard',
+        onclick: () => go('/manage/dashboard')
+      })
+    );
+
+    const items = [
+      ['events', 'Events'],
+      ['activities', 'Activities'],
+      ['registrations', 'Registrations'],
+      ['team', 'Team'],
+      ['content', 'Content'],
+      ['gallery', 'Gallery'],
+      ['logs', 'Activity Logs'],
+      ['settings', 'Settings']
+    ];
+
+    items
+      .filter(([permission]) => can(permission) || can(permission + ':read'))
+      .forEach(([permission, label]) => {
+        navigation.append(
+          el('button', {
+            className: location.pathname.includes('/' + permission) ? 'on' : '',
+            text: label,
+            onclick: () => go('/manage/' + permission)
+          })
+        );
+      });
+
+    if (can('admins')) {
+      navigation.append(
+        el('button', {
+          className: location.pathname.includes('/admins') ? 'on' : '',
+          text: 'Admin Users',
+          onclick: () => go('/manage/admins')
+        })
+      );
+    }
+
+    const logout = el('button', {
+      className: 'logout',
+      text: 'Logout',
+      onclick: async () => {
+        try {
+          await api('/auth/logout', { method: 'POST' });
+        } finally {
+          me = null;
+          location.href = '/manage/login';
+        }
+      }
+    });
+
+    app.replaceChildren(
+      el(
+        'aside',
+        { className: 'm-side' },
+        el(
+          'div',
+          { className: 'brand' },
+          el('div', { text: 'CIPHER' }),
+          el('small', { text: 'Management Portal' }),
+          el('div', { className: 'role', text: me.role })
+        ),
+        navigation,
+        logout
+      ),
+      el(
+        'main',
+        { className: 'main' },
+        el(
+          'div',
+          { className: 'head' },
+          el('small', { text: title.toUpperCase() }),
+          el('h1', { text: title }),
+          el('p', { text: subtitle })
+        ),
+        content
+      )
+    );
+  }
+
+  function login() {
+    const email = field('Administrator email', 'email');
+    const password = field('Password', 'password');
+    const error = el('div', { className: 'error' });
+
+    const form = el(
+      'form',
+      {
+        className: 'card',
+        onsubmit: async (event) => {
+          event.preventDefault();
+          error.textContent = '';
+
+          try {
+            const result = await api('/auth/login', {
+              method: 'POST',
+              body: {
+                email: email.value.trim(),
+                password: password.value
+              }
+            });
+
+            me = result.admin;
+            location.href = '/manage/dashboard';
+          } catch (err) {
+            error.textContent = err.message || 'Login failed';
+          }
+        }
+      },
+      el('img', { src: '/img/logo.jpg', alt: 'CIPHER' }),
+      el('h1', { text: 'Management Portal' }),
+      email,
+      password,
+      error,
+      el('button', { className: 'btn green', text: 'LOGIN →', type: 'submit' })
+    );
+
+    app.replaceChildren(el('div', { className: 'login' }, form));
+  }
+
+  async function dashboard() {
+    const data = await api('/dashboard');
+    const stats = data.stats || {};
+
+    const cards = Object.entries(stats).map(([key, value]) =>
+      el(
+        'div',
+        { className: 'card stat' },
+        el('b', { text: String(value) }),
+        el('span', { text: key.replace(/[A-Z]/g, (match) => ' ' + match).toUpperCase() })
+      )
+    );
+
+    const table = el(
+      'table',
+      {},
+      el(
+        'tr',
+        {},
+        el('th', { text: 'Name' }),
+        el('th', { text: 'Email' }),
+        el('th', { text: 'Year' }),
+        el('th', { text: 'Status' })
+      ),
+      ...(data.recentRegistrations || []).map((row) =>
+        el(
+          'tr',
+          {},
+          el('td', { text: row.name || '—' }),
+          el('td', { text: row.email || '—' }),
+          el('td', { text: row.year || '—' }),
+          el('td', {}, badge(row.status || 'NEW'))
+        )
+      )
+    );
+
+    shell(
+      'CIPHER Control Center',
+      'Secure workspace for CIPHER website management.',
+      el(
+        'div',
+        {},
+        el('div', { className: 'stats' }, cards),
+        el(
+          'div',
+          { className: 'panel' },
+          el('h3', { text: 'Recent registrations' }),
+          table
+        ),
+        el(
+          'div',
+          { className: 'panel' },
+          el('h3', { text: 'Recent admin actions' }),
+          ...(data.recentLogs || []).map((item) =>
+            el('p', {
+              text: (item.admin_name || 'System') + ' — ' + (item.details || '')
+            })
+          )
+        )
+      )
+    );
+  }
+
+  async function list(type) {
+    const data = await api('/' + type);
+    const content = el('div');
+
+    (Array.isArray(data) ? data : []).forEach((row) => {
+      content.append(
+        el(
+          'div',
+          { className: 'panel' },
+          el('b', { text: row.title || row.name || row.email || 'Item' }),
+          el('span', {
+            text: '  ' + (row.role || row.category || row.status || '')
+          })
+        )
+      );
+    });
+
+    shell(
+      type.charAt(0).toUpperCase() + type.slice(1),
+      'Manage ' + type + '.',
+      content
+    );
+  }
+
+  async function render() {
+    if (!me) {
+      login();
+      return;
+    }
+
+    const path = location.pathname;
+
+    if (path === '/manage' || path === '/manage/' || path === '/manage/login') {
+      location.href = '/manage/dashboard';
+      return;
+    }
+
+    try {
+      if (path.includes('/dashboard')) {
+        await dashboard();
+      } else if (path.includes('/events')) {
+        await list('events');
+      } else if (path.includes('/activities')) {
+        await list('activities');
+      } else if (path.includes('/registrations')) {
+        await list('registrations');
+      } else if (path.includes('/team')) {
+        await list('team');
+      } else if (path.includes('/content')) {
+        await list('content');
+      } else if (path.includes('/logs')) {
+        await list('logs');
+      } else if (path.includes('/admins') && can('admins')) {
+        await list('admins');
+      } else {
+        await list('settings');
+      }
+    } catch (error) {
+      shell(
+        'Error',
+        error.message || 'Request failed',
+        el('div', { className: 'panel', text: error.message || 'Request failed' })
+      );
+    }
+  }
+
+  window.addEventListener('popstate', render);
+
+  (async () => {
+    try {
+      const result = await api('/auth/me');
+      me = result.admin;
+      await render();
+    } catch (error) {
+      me = null;
+      login();
+    }
+  })();
+})();
