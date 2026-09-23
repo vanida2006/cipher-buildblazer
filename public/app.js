@@ -939,154 +939,6 @@
     } finally { btn.disabled = false; }
   });
 
-  /* ---------------- admin section & login modal ---------------- */
-  function initAdminSection() {
-    const adminSec = $('#admin');
-    const loginModal = $('#admin-login-modal');
-    const openBtn = $('#open-admin-login-btn');
-    if (!adminSec || !loginModal) return;
-
-    const authFormWrap = $('#modal-auth-form-wrap');
-    const sessionWrap = $('#modal-auth-session-wrap');
-    const form = $('#modal-admin-login-form');
-    const userInp = $('#modal-term-user');
-    const passInp = $('#modal-term-pass');
-    const rememberInp = $('#modal-term-remember');
-    const togglePw = $('#modal-term-toggle-pw');
-    const status = $('#modal-term-status');
-    const submitBtn = $('#modal-term-submit-btn');
-    const modalSessionUser = $('#modal-session-user');
-    const logoutBtn = $('#modal-logout-btn');
-
-    const TOKEN_KEY = 'cipher-admin-token';
-    const USER_KEY = 'cipher-admin-user';
-
-    const getStoredToken = () => {
-      try {
-        return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
-      } catch { return null; }
-    };
-
-    const getStoredUser = () => {
-      try {
-        return sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY) || 'Administrator';
-      } catch { return 'Administrator'; }
-    };
-
-    const checkSession = () => {
-      const token = getStoredToken();
-      const user = getStoredUser();
-      if (token) {
-        if (authFormWrap) authFormWrap.hidden = true;
-        if (sessionWrap) sessionWrap.hidden = false;
-        if (modalSessionUser) modalSessionUser.textContent = user;
-      } else {
-        if (authFormWrap) authFormWrap.hidden = false;
-        if (sessionWrap) sessionWrap.hidden = true;
-      }
-    };
-
-    // Open Admin Modal or Navigate to Dashboard
-    if (openBtn) {
-      openBtn.addEventListener('click', () => {
-        const token = getStoredToken();
-        if (token) {
-          window.location.href = '/admin/';
-          return;
-        }
-        if (status) {
-          status.className = 'form-status';
-          status.textContent = '';
-        }
-        checkSession();
-        loginModal.showModal();
-        if (userInp) userInp.focus();
-      });
-    }
-
-    // Toggle password visibility
-    if (togglePw && passInp) {
-      togglePw.addEventListener('click', () => {
-        const isPw = passInp.type === 'password';
-        passInp.type = isPw ? 'text' : 'password';
-        togglePw.textContent = isPw ? '🔒' : '👁';
-      });
-    }
-
-    // Form submit
-    if (form) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = userInp ? userInp.value.trim() : '';
-        const password = passInp ? passInp.value : '';
-        const remember = rememberInp ? rememberInp.checked : false;
-
-        status.className = 'form-status';
-        if (!username || !password) {
-          status.classList.add('err');
-          status.textContent = 'Both username/email and password are required.';
-          return;
-        }
-
-        submitBtn.disabled = true;
-        status.textContent = 'Authenticating admin credentials…';
-
-        try {
-          const res = await fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || 'Authentication denied. Verify username and password.');
-          }
-
-          try {
-            sessionStorage.setItem(TOKEN_KEY, data.token);
-            sessionStorage.setItem(USER_KEY, data.username || username);
-            if (remember) {
-              localStorage.setItem(TOKEN_KEY, data.token);
-              localStorage.setItem(USER_KEY, data.username || username);
-            }
-          } catch {}
-
-          status.classList.add('ok');
-          status.textContent = '✓ Access granted. Redirecting to dashboard…';
-
-          setTimeout(() => {
-            window.location.href = '/admin/';
-          }, 400);
-        } catch (err) {
-          status.classList.add('err');
-          status.textContent = err.message;
-        } finally {
-          submitBtn.disabled = false;
-        }
-      });
-    }
-
-    // Logout
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        try {
-          sessionStorage.removeItem(TOKEN_KEY);
-          sessionStorage.removeItem(USER_KEY);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-        } catch {}
-        if (form) form.reset();
-        if (status) {
-          status.className = 'form-status';
-          status.textContent = 'Session terminated.';
-        }
-        checkSession();
-      });
-    }
-
-    checkSession();
-  }
-
   /* ---------------- about section & collage interaction ---------------- */
   function initAboutCollage() {
     const aboutSec = $('#about');
@@ -1311,7 +1163,7 @@
     entries.forEach((en) => en.isIntersecting &&
       links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id)));
   }, { rootMargin: '-45% 0px -50% 0px' });
-  ['home', 'about', 'leadership', 'events', 'admin', 'join'].forEach((id) => {
+  ['home', 'about', 'leadership', 'events', 'join'].forEach((id) => {
     const el = $('#' + id);
     if (el) io.observe(el);
   });
@@ -1323,7 +1175,7 @@
       return;
     }
     const revealTargets = $$(
-      '.section, .pillar, .card, .admin-dashboard-hero-card, .admin-card-v2, .admin-login-banner, .archive li, .about__text, .about__collage'
+      '.section, .pillar, .card, .archive li, .about__text, .about__collage'
     );
     revealTargets.forEach((el) => {
       el.classList.add('reveal');
