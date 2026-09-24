@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CIPHER — Student Association of Computer Science &amp; Engineering, SJEC</title>
+  <meta name="description" content="CIPHER is the student association of the Department of Computer Science & Engineering at SJEC.">
+  <meta name="theme-color" content="#020a05">
+  <meta property="og:title" content="CIPHER — CSE Student Association, SJEC">
+  <meta property="og:description" content="Workshops, hackathons and industry-ready skills by the students of Computer Science & Engineering.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="img/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260924_2330">
+  <script>
+    // Safeguard: Ensure page scrolling is never stuck in locked state
+    setTimeout(function() { document.body.classList.remove('locked'); }, 800);
+  </script>
+</head>
+<body class="locked">
+
+  <!-- Intro -->
+  <div id="intro" class="intro" role="dialog" aria-label="Intro animation">
+    <canvas id="intro-rain"></canvas>
+    <div class="intro__word" id="intro-word" aria-hidden="true"></div>
+    <button class="intro__skip" id="intro-skip" type="button">[ SKIP &gt; ]</button>
+  </div>
+
+  <!-- Background layers -->
+  <canvas id="waves" class="bg-waves" aria-hidden="true"></canvas>
+  <div id="cursor" class="cursor" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a href="#home" class="nav__logo" aria-label="CIPHER home"><img src="img/logo.jpg" alt="CIPHER logo" width="76" height="52"></a>
+    <button class="nav__toggle" id="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span></span></button>
+    <nav class="nav__links" id="nav-links" aria-label="Primary">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#leadership">Leadership</a>
+      <a href="#events">Events</a>
+      <a href="#join">Join</a>
+    </nav>
+    <button class="btn btn--ghost btn--sm" data-open-join type="button">Join CIPHER</button>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="home" class="hero">
+      <canvas id="hero-dots" class="hero__dots" aria-hidden="true"></canvas>
+      <h1 class="hero__title glow">Student Association of Computer Science &amp; Engineering</h1>
+      <p class="hero__sub">Bridging academic knowledge and practical application — a community of aspiring professionals in computing.</p>
+      <div class="hero__cta">
+        <button class="btn btn--solid" data-open-join type="button">Join CIPHER →</button>
+        <a class="btn btn--ghost" href="#events">Explore events</a>
+      </div>
+    </section>
+
+    <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>SYS // IDENTITY</span></div>
+
+    <!-- ABOUT -->
+    <section id="about" class="section about">
+      <div class="about__text">
+        <p class="tag about__tag">// ABOUT</p>
+        <h2 class="glow about__heading" id="about-title">Who we are</h2>
+        <div class="about__heading-line" aria-hidden="true"></div>
+        <p class="about__desc" id="about-lead"><strong>CIPHER</strong> is the student association of the Department of Computer Science &amp; Engineering. It serves as a platform for students to nurture their technical and interpersonal skills through innovative and collaborative activities. The association strives to bridge the gap between academic knowledge and practical application, fostering a community of aspiring professionals dedicated to excellence in computing.</p>
+        <div class="about__meta" aria-hidden="true">
+          <span class="about__meta-item"><span class="about__meta-dot"></span>DEPT. OF CSE</span>
+          <span class="about__meta-item"><span class="about__meta-dot"></span>SJEC MANGALURU</span>
+          <span class="about__meta-item"><span class="about__meta-dot"></span>SYS // IDENTITY</span>
+        </div>
+      </div>
+      <div class="about__interactive" id="about-interactive" role="region" aria-label="Interactive CIPHER visual showcase">
+        <!-- Pre-rendered collage photo cards (instant GPU acceleration, zero lag) -->
+        <div class="about__hover-stage" id="about-hover-stage" aria-hidden="true">
+          <div class="about-hover-photo about-hover-photo--1" data-idx="0">
+            <img src="img/about/about-1.jpg" alt="CIPHER Department activities and launch">
+          </div>
+          <div class="about-hover-photo about-hover-photo--2" data-idx="1">
+            <img src="img/about/about-2.jpg" alt="CIPHER student association celebration">
+          </div>
+          <div class="about-hover-photo about-hover-photo--3" data-idx="2">
+            <img src="img/about/about-3.jpg" alt="Technical workshop and hands-on session">
+          </div>
+          <div class="about-hover-photo about-hover-photo--4" data-idx="3">
+            <img src="img/about/about-4.jpg" alt="Inauguration ceremony and lamp lighting">
+          </div>
+          <div class="about-hover-photo about-hover-photo--5" data-idx="4">
+            <img src="img/about/about-5.jpg" alt="Faculty leadership and address">
+          </div>
+          <div class="about-hover-photo about-hover-photo--6" data-idx="5">
+            <img src="img/about/about-6.jpg" alt="Student collaboration and team presentation">
+          </div>
+          <div class="about-hover-photo about-hover-photo--7" data-idx="6">
+            <img src="img/about/about-7.jpg" alt="Hackathon coding and competition">
+          </div>
+          <div class="about-hover-photo about-hover-photo--8" data-idx="7">
+            <img src="img/about/about-8.jpg" alt="Award ceremony and student felicitations">
+          </div>
+          <div class="about-hover-photo about-hover-photo--9" data-idx="8">
+            <img src="img/about/about-9.jpg" alt="CIPHER community symposium">
+          </div>
+        </div>
+
+        <!-- The glowing CIPHER word in FRONT of the photos -->
+        <div class="about__cipher-word-wrap" aria-hidden="true">
+          <span class="about__cipher-word">CIPHER</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>CORE // CAPABILITIES</span></div>
+
+    <!-- PILLARS (What We Do) -->
+    <section class="section pillars-wrap" aria-label="What we do">
+      <div class="pillars">
+        
+        <!-- Pillar 01: Technical Skill Building -->
+        <article class="pillar" data-target="#events" data-filter="WORKSHOP" tabindex="0" role="button" aria-label="Explore Technical Skill Building workshops">
+          <span class="pillar__corner corner--tl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--tr" aria-hidden="true"></span>
+          <span class="pillar__corner corner--bl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--br" aria-hidden="true"></span>
+          <div class="pillar__spotlight" aria-hidden="true"></div>
+          <div class="pillar__grid-bg" aria-hidden="true"></div>
+          <div class="pillar__scanline" aria-hidden="true"></div>
+
+          <div class="pillar__header">
+            <div class="pillar__icon-wrap">
+              <span class="pillar__icon-ring" aria-hidden="true"></span>
+              <svg class="pillar__icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+                <line x1="14" y1="4" x2="10" y2="20"></line>
+              </svg>
+            </div>
+            <div class="pillar__meta">
+              <span class="pillar__mod">MOD // 01 · DEV</span>
+              <div class="pillar__signal" aria-hidden="true">
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+              </div>
+            </div>
+          </div>
+
+          <h3>Technical Skill Building</h3>
+          <p class="pillar__desc">Hands-on workshops, coding sessions, and tech talks that turn theory into working software.</p>
+        </article>
+
+        <!-- Pillar 02: Leadership & Governance -->
+        <article class="pillar" data-target="#leadership" tabindex="0" role="button" aria-label="Explore Leadership and Governance">
+          <span class="pillar__corner corner--tl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--tr" aria-hidden="true"></span>
+          <span class="pillar__corner corner--bl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--br" aria-hidden="true"></span>
+          <div class="pillar__spotlight" aria-hidden="true"></div>
+          <div class="pillar__grid-bg" aria-hidden="true"></div>
+          <div class="pillar__scanline" aria-hidden="true"></div>
+
+          <div class="pillar__header">
+            <div class="pillar__icon-wrap">
+              <span class="pillar__icon-ring" aria-hidden="true"></span>
+              <svg class="pillar__icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"></path>
+                <path d="M12 8v4"></path>
+                <path d="M12 16h.01"></path>
+              </svg>
+            </div>
+            <div class="pillar__meta">
+              <span class="pillar__mod">MOD // 02 · EXEC</span>
+              <div class="pillar__signal" aria-hidden="true">
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+              </div>
+            </div>
+          </div>
+
+          <h3>Leadership &amp; Governance</h3>
+          <p class="pillar__desc">Annual elections for President, Secretary, and office bearers — guided by the HOD and Faculty Coordinator.</p>
+        </article>
+
+        <!-- Pillar 03: Events & Collaboration -->
+        <article class="pillar" data-target="#events" data-filter="COMPETITION" tabindex="0" role="button" aria-label="Explore Events and Collaboration">
+          <span class="pillar__corner corner--tl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--tr" aria-hidden="true"></span>
+          <span class="pillar__corner corner--bl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--br" aria-hidden="true"></span>
+          <div class="pillar__spotlight" aria-hidden="true"></div>
+          <div class="pillar__grid-bg" aria-hidden="true"></div>
+          <div class="pillar__scanline" aria-hidden="true"></div>
+
+          <div class="pillar__header">
+            <div class="pillar__icon-wrap">
+              <span class="pillar__icon-ring" aria-hidden="true"></span>
+              <svg class="pillar__icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+            </div>
+            <div class="pillar__meta">
+              <span class="pillar__mod">MOD // 03 · IMPACT</span>
+              <div class="pillar__signal" aria-hidden="true">
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+              </div>
+            </div>
+          </div>
+
+          <h3>Events &amp; Collaboration</h3>
+          <p class="pillar__desc">Hackathons, seminars, and department-level competitions that bring students together.</p>
+        </article>
+
+        <!-- Pillar 04: Industry Readiness -->
+        <article class="pillar" data-target="#events" data-filter="TECH TALK" tabindex="0" role="button" aria-label="Explore Industry Readiness sessions">
+          <span class="pillar__corner corner--tl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--tr" aria-hidden="true"></span>
+          <span class="pillar__corner corner--bl" aria-hidden="true"></span>
+          <span class="pillar__corner corner--br" aria-hidden="true"></span>
+          <div class="pillar__spotlight" aria-hidden="true"></div>
+          <div class="pillar__grid-bg" aria-hidden="true"></div>
+          <div class="pillar__scanline" aria-hidden="true"></div>
+
+          <div class="pillar__header">
+            <div class="pillar__icon-wrap">
+              <span class="pillar__icon-ring" aria-hidden="true"></span>
+              <svg class="pillar__icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+            </div>
+            <div class="pillar__meta">
+              <span class="pillar__mod">MOD // 04 · CAREER</span>
+              <div class="pillar__signal" aria-hidden="true">
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+                <span class="sig-bar"></span>
+              </div>
+            </div>
+          </div>
+
+          <h3>Industry Readiness</h3>
+          <p class="pillar__desc">Bridging classroom learning with real-world application to prepare students for the field.</p>
+        </article>
+
+      </div>
+    </section>
+
+    <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>EXECUTIVE // COUNCIL</span></div>
+
+    <!-- LEADERSHIP -->
+    <section id="leadership" class="section">
+      <p class="tag">// governance</p>
+      <h2 class="glow">Leadership Structure</h2>
+      <div class="carousel-wrapper" id="leaders-wrapper">
+        <div class="carousel" id="leaders" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>TERMINAL // ARCHIVES &amp; ACTIVITIES</span></div>
+
+    <!-- EVENTS -->
+    <section id="events" class="section">
+      <p class="tag">// activities</p>
+      <h2 class="glow">Events &amp; Workshops</h2>
+      
+      <!-- Category Filter Menu -->
+      <div class="chips" id="event-chips" role="group" aria-label="Filter events by category">
+        <button class="chip" type="button" data-cat="ALL" aria-pressed="true">ALL</button>
+        <button class="chip" type="button" data-cat="WORKSHOP" aria-pressed="false">WORKSHOP</button>
+        <button class="chip" type="button" data-cat="COMPETITION" aria-pressed="false">COMPETITION</button>
+        <button class="chip" type="button" data-cat="BRANCH GALA" aria-pressed="false">BRANCH GALA</button>
+        <button class="chip" type="button" data-cat="CLUB LAUNCH" aria-pressed="false">CLUB LAUNCH</button>
+        <button class="chip" type="button" data-cat="TECH TALK" aria-pressed="false">TECH TALK</button>
+      </div>
+
+      <!-- 3 Cards Per Row Grid (All 8 Events) -->
+      <div class="cards" id="event-cards">
+        
+        <!-- Row 1 / Card 1: Agentforce Workshop -->
+        <article class="card has-gallery" data-slug="agentforce-workshop" data-category="WORKSHOP" data-gallery='[{"src":"img/events/agentforce-workshop/01.jpg","caption":"Hands-on workshop in lab"},{"src":"img/events/agentforce-workshop/02.jpg","caption":"Trailhead prompt automation"},{"src":"img/events/agentforce-workshop/03.jpg","caption":"Group collaboration on AI agents"}]' tabindex="0" role="button" aria-label="Agentforce Workshop details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">WORKSHOP</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">03</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/agentforce-workshop/01.jpg" alt="Agentforce Workshop photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/agentforce-workshop/02.jpg" alt="Agentforce Workshop photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/agentforce-workshop/03.jpg" alt="Agentforce Workshop photo 3" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · AGENTBLAZER</span>
+              <span class="card__date-tag">22 MAY 2026</span>
+            </div>
+            <h3 class="card__title">Agentforce Workshop</h3>
+            <p class="card__summary">A hands-on workshop with Salesforce on building AI agents and prompt-based workflow automation in Trailhead.</p>
+            <div class="card__footer">
+              <span class="card__venue">Computer Lab 3</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 1 / Card 2: Cyber Security and Career Pathways -->
+        <article class="card has-gallery" data-slug="cybersecurity-career-pathways" data-category="WORKSHOP" data-gallery='[{"src":"img/events/cybersecurity-career-pathways/01.jpg","caption":"Mr. Suhas Nayak presenting core security concepts"},{"src":"img/events/cybersecurity-career-pathways/02.jpg","caption":"Live Shodan & OSINT reconnaissance"},{"src":"img/events/cybersecurity-career-pathways/03.jpg","caption":"Live SQL injection demonstration"},{"src":"img/events/cybersecurity-career-pathways/04.jpg","caption":"Cyber Kill Chain model breakdown"},{"src":"img/events/cybersecurity-career-pathways/05.jpg","caption":"Student interaction and career Q&A"},{"src":"img/events/cybersecurity-career-pathways/06.jpg","caption":"Valedictory felicitation"}]' tabindex="0" role="button" aria-label="Cyber Security and Career Pathways details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">WORKSHOP</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">06</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/cybersecurity-career-pathways/01.jpg" alt="Cyber Security photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/cybersecurity-career-pathways/02.jpg" alt="Cyber Security photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/cybersecurity-career-pathways/03.jpg" alt="Cyber Security photo 3" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/cybersecurity-career-pathways/04.jpg" alt="Cyber Security photo 4" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/cybersecurity-career-pathways/05.jpg" alt="Cyber Security photo 5" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/cybersecurity-career-pathways/06.jpg" alt="Cyber Security photo 6" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · SECOPS</span>
+              <span class="card__date-tag">01 APR 2026</span>
+            </div>
+            <h3 class="card__title">Cyber Security and Career Pathways</h3>
+            <p class="card__summary">A hands-on session by Mr. Suhas Nayak (Ingersoll Rand) with live demos of Shodan, OSINT, Google Dorking and SQL injection, plus career guidance.</p>
+            <div class="card__footer">
+              <span class="card__venue">Kalam Auditorium</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 1 / Card 3: PROMPT OPS-2K26 -->
+        <article class="card has-gallery" data-slug="prompt-ops-2k26" data-category="COMPETITION" data-gallery='[{"src":"img/events/prompt-ops-2k26/01.jpg","caption":"Participants tackling Track 1 challenges"},{"src":"img/events/prompt-ops-2k26/02.jpg","caption":"AI logo recreation round"},{"src":"img/events/prompt-ops-2k26/03.jpg","caption":"Python debugging & prompt security"},{"src":"img/events/prompt-ops-2k26/04.jpg","caption":"Evaluation by faculty judges"},{"src":"img/events/prompt-ops-2k26/05.jpg","caption":"Winners ceremony"},{"src":"img/events/prompt-ops-2k26/06.jpg","caption":"Student presentations"},{"src":"img/events/prompt-ops-2k26/07.jpg","caption":"Round 2 teams in action"},{"src":"img/events/prompt-ops-2k26/08.jpg","caption":"Event coordinators in session"},{"src":"img/events/prompt-ops-2k26/09.jpg","caption":"Faculty address"},{"src":"img/events/prompt-ops-2k26/10.jpg","caption":"Trophy distribution"},{"src":"img/events/prompt-ops-2k26/11.jpg","caption":"Group photo of finalists"},{"src":"img/events/prompt-ops-2k26/12.jpg","caption":"Valedictory gathering"}]' tabindex="0" role="button" aria-label="PROMPT OPS-2K26 details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">COMPETITION</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">12</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/prompt-ops-2k26/01.jpg" alt="Prompt Ops photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/prompt-ops-2k26/02.jpg" alt="Prompt Ops photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/prompt-ops-2k26/03.jpg" alt="Prompt Ops photo 3" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/prompt-ops-2k26/04.jpg" alt="Prompt Ops photo 4" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/prompt-ops-2k26/05.jpg" alt="Prompt Ops photo 5" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/prompt-ops-2k26/06.jpg" alt="Prompt Ops photo 6" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · PROMPT AI</span>
+              <span class="card__date-tag">25 MAR 2026</span>
+            </div>
+            <h3 class="card__title">PROMPT OPS-2K26</h3>
+            <p class="card__summary">A technical competition on prompt engineering and AI tools by the AgentBlazer Club and Cipher. Track 1 covered invitation, logo and image recreation; Track 2 tested JSON conversion, Python debugging and Gemini AI security challenges.</p>
+            <div class="card__footer">
+              <span class="card__venue">CSE Seminar Hall</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2 / Card 4: Demystifying Generative Models -->
+        <article class="card has-gallery" data-slug="demystifying-generative-models" data-category="WORKSHOP" data-gallery='[{"src":"img/events/demystifying-generative-models/01.jpg","caption":"Peer learning presentation on transformers"},{"src":"img/events/demystifying-generative-models/02.jpg","caption":"Hands-on model evaluation challenge"},{"src":"img/events/demystifying-generative-models/03.jpg","caption":"Valedictory session and certificate awards"}]' tabindex="0" role="button" aria-label="Demystifying Generative Models details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">WORKSHOP</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">03</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/demystifying-generative-models/01.jpg" alt="Demystifying Generative Models photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/demystifying-generative-models/02.jpg" alt="Demystifying Generative Models photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/demystifying-generative-models/03.jpg" alt="Demystifying Generative Models photo 3" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · GENAI LAB</span>
+              <span class="card__date-tag">18 MAR 2026</span>
+            </div>
+            <h3 class="card__title">Demystifying Generative Models</h3>
+            <p class="card__summary">A peer-learning workshop led by 6th-semester students on transformers, prompt engineering and today’s leading AI tools.</p>
+            <div class="card__footer">
+              <span class="card__venue">CSE Lab 2</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2 / Card 5: Master the Future: Hands-on GSoC & LLMs Workshop -->
+        <article class="card has-gallery" data-slug="gsoc-llm-workshop" data-category="WORKSHOP" data-gallery='[{"src":"img/events/gsoc-llm-workshop/02.jpg","caption":"Mr. Anas Khan on open-source ecosystems"},{"src":"img/events/gsoc-llm-workshop/03.jpg","caption":"GitHub fork, clone & PR workflow practice"},{"src":"img/events/gsoc-llm-workshop/04.jpg","caption":"Deep dive into LLM temperature & Top-P"},{"src":"img/events/gsoc-llm-workshop/05.jpg","caption":"Retrieval Augmented Generation (RAG) demo"},{"src":"img/events/gsoc-llm-workshop/06.jpg","caption":"Student Q&A on Google Summer of Code"},{"src":"img/events/gsoc-llm-workshop/07.jpg","caption":"Interactive LangChain and Gemini exercises"}]' tabindex="0" role="button" aria-label="Master the Future: Hands-on GSoC & LLMs Workshop details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">WORKSHOP</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">06</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/gsoc-llm-workshop/02.jpg" alt="GSoC and LLMs photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/gsoc-llm-workshop/03.jpg" alt="GSoC and LLMs photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/gsoc-llm-workshop/04.jpg" alt="GSoC and LLMs photo 3" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/gsoc-llm-workshop/05.jpg" alt="GSoC and LLMs photo 4" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/gsoc-llm-workshop/06.jpg" alt="GSoC and LLMs photo 5" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/gsoc-llm-workshop/07.jpg" alt="GSoC and LLMs photo 6" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · OPEN SOURCE</span>
+              <span class="card__date-tag">14 FEB 2026</span>
+            </div>
+            <h3 class="card__title">Master the Future: Hands-on GSoC &amp; LLMs Workshop</h3>
+            <p class="card__summary">A hands-on session by Mr. Anas Khan (HackerRank) for about 55 participants on GitHub workflows, Google Summer of Code and the LLM ecosystem.</p>
+            <div class="card__footer">
+              <span class="card__venue">Kalam Auditorium</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 2 / Card 6: Lumière — The Gala -->
+        <article class="card has-gallery" data-slug="lumiere-the-gala" data-category="BRANCH GALA" data-gallery='[{"src":"img/events/lumiere-the-gala/01.jpg","caption":"The Lumière stage with Where Glam Meets Glow theme"},{"src":"img/events/lumiere-the-gala/02.jpg","caption":"Traditional lamp-lighting ceremony"},{"src":"img/events/lumiere-the-gala/03.jpg","caption":"CSE students attending in formal attire"},{"src":"img/events/lumiere-the-gala/04.jpg","caption":"Cipher student council and faculty photo"},{"src":"img/events/lumiere-the-gala/05.jpg","caption":"Evening gala cultural performance"}]' tabindex="0" role="button" aria-label="Lumière — The Gala details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">BRANCH GALA</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">05</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/lumiere-the-gala/01.jpg" alt="Lumière Gala photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/lumiere-the-gala/02.jpg" alt="Lumière Gala photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/lumiere-the-gala/03.jpg" alt="Lumière Gala photo 3" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/lumiere-the-gala/04.jpg" alt="Lumière Gala photo 4" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/lumiere-the-gala/05.jpg" alt="Lumière Gala photo 5" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CIPHER · BRANCH ENTRY</span>
+              <span class="card__date-tag">29 OCT 2025</span>
+            </div>
+            <h3 class="card__title">Lumière — The Gala</h3>
+            <p class="card__summary">The CSE branch entry programme, themed “Where Glam Meets Glow.” Organised by the Cipher Association, it welcomed students into the department and reinforced a shared sense of collective identity.</p>
+            <div class="card__footer">
+              <span class="card__venue">Kalam Auditorium</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 3 / Card 7: AgentBlazer Club Inauguration -->
+        <article class="card has-gallery" data-slug="agentblazer-club-inauguration" data-category="CLUB LAUNCH" data-gallery='[{"src":"img/events/agentblazer-club-inauguration/01.jpg","caption":"Inaugural lamp-lighting with Salesforce guests"},{"src":"img/events/agentblazer-club-inauguration/02.jpg","caption":"Dr. Rio D’Souza addressing the student gathering"},{"src":"img/events/agentblazer-club-inauguration/03.jpg","caption":"Unveiling of the AgentBlazer charter plaque"}]' tabindex="0" role="button" aria-label="AgentBlazer Club Inauguration details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">CLUB LAUNCH</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">03</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/agentblazer-club-inauguration/01.jpg" alt="AgentBlazer Inauguration photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/agentblazer-club-inauguration/02.jpg" alt="AgentBlazer Inauguration photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/agentblazer-club-inauguration/03.jpg" alt="AgentBlazer Inauguration photo 3" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · AGENTBLAZER</span>
+              <span class="card__date-tag">28 AUG 2025</span>
+            </div>
+            <h3 class="card__title">AgentBlazer Club Inauguration</h3>
+            <p class="card__summary">The department inaugurated the AgentBlazer Club to foster leadership, innovation and technical excellence, with Salesforce leaders as chief guests.</p>
+            <div class="card__footer">
+              <span class="card__venue">Kalam Auditorium</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Row 3 / Card 8: Agentforce Technical Session -->
+        <article class="card has-gallery" data-slug="agentforce-technical-session" data-category="TECH TALK" data-gallery='[{"src":"img/events/agentforce-technical-session/01.jpg","caption":"Mr. Santosh Rebello on Predictive to Agentic AI"},{"src":"img/events/agentforce-technical-session/02.jpg","caption":"Salesforce Data Cloud architectural overview"},{"src":"img/events/agentforce-technical-session/03.jpg","caption":"Student career pathways discussion"}]' tabindex="0" role="button" aria-label="Agentforce Technical Session details">
+          <div class="card__media">
+            <div class="card__progress" aria-hidden="true"><div class="card__progress-bar"></div></div>
+            <div class="card__category-badge">TECH TALK</div>
+            <div class="card__hud" aria-hidden="true"><span class="card__hud-badge"><span class="hud-idx">01</span> / <span class="hud-total">03</span></span></div>
+            <div class="card__slides">
+              <img src="img/events/agentforce-technical-session/01.jpg" alt="Agentforce Technical Session photo 1" class="card__slide active" loading="lazy" decoding="async">
+              <img src="img/events/agentforce-technical-session/02.jpg" alt="Agentforce Technical Session photo 2" class="card__slide" loading="lazy" decoding="async">
+              <img src="img/events/agentforce-technical-session/03.jpg" alt="Agentforce Technical Session photo 3" class="card__slide" loading="lazy" decoding="async">
+            </div>
+            <div class="card__overlay" aria-hidden="true"></div>
+            <div class="card__dots" aria-hidden="true">
+              <span class="card__dot active"></span>
+              <span class="card__dot"></span>
+              <span class="card__dot"></span>
+            </div>
+          </div>
+          <div class="card__content">
+            <div class="card__header-meta">
+              <span class="card__dept-tag">CSE · TECH TALK</span>
+              <span class="card__date-tag">28 AUG 2025</span>
+            </div>
+            <h3 class="card__title">Agentforce Technical Session</h3>
+            <p class="card__summary">Salesforce executives traced the shift from predictive to agentic AI and outlined career pathways in the Salesforce ecosystem.</p>
+            <div class="card__footer">
+              <span class="card__venue">Kalam Auditorium</span>
+              <span class="card__action">VIEW DETAILS ↗</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>TERMINAL // ARCHIVES &amp; ACTIVITIES</span></div>
+
+    <!-- ARCHIVE -->
+    <section class="section" id="archive-section">
+      <p class="tag">// ACTIVITIES</p>
+      <h2 class="glow">Activities</h2>
+      <p class="lead">Hands-on workshops, industrial visits, and technical sessions run by the Cipher Association &mdash; spanning AI, blockchain, research tooling, and career prep.</p>
+
+      <div class="archive-controls">
+        <label class="archive-search-wrap">
+          <svg class="archive-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="sr">Search activities</span>
+          <input id="archive-search" type="search" placeholder="Search activities..." autocomplete="off">
+        </label>
+        <div class="chips archive-chips" id="archive-chips" role="group" aria-label="Filter activities by category">
+          <button class="chip" type="button" data-cat="ALL" aria-pressed="true">ALL</button>
+          <button class="chip" type="button" data-cat="WORKSHOP" aria-pressed="false">WORKSHOP</button>
+          <button class="chip" type="button" data-cat="INDUSTRIAL VISIT" aria-pressed="false">INDUSTRIAL VISIT</button>
+          <button class="chip" type="button" data-cat="TECH TALK" aria-pressed="false">TECH TALK</button>
+          <button class="chip" type="button" data-cat="COMPETITION" aria-pressed="false">COMPETITION</button>
+          <button class="chip" type="button" data-cat="RESEARCH" aria-pressed="false">RESEARCH</button>
+          <button class="chip" type="button" data-cat="CAREER PREP" aria-pressed="false">CAREER PREP</button>
+        </div>
+      </div>
+
+      <div class="archive-grid" id="archive"></div>
+      <p class="empty-msg" id="archive-empty" hidden>No activities match your search.</p>
+    </section>
+
+    <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>COMMUNITY // RECRUITMENT</span></div>
+
+    <!-- JOIN -->
+    <section id="join" class="section join">
+      <p class="tag">// access club</p>
+      <h2 class="glow">Join the Team</h2>
+      <p class="lead">Whether you want to build, lead, or simply learn — CIPHER is where CSE students turn curiosity into capability. Join the community and help shape what comes next.</p>
+      <div class="hero__cta hero__cta--center">
+        <button class="btn btn--solid" data-open-join type="button">Join →</button>
+        <a class="btn btn--ghost" href="#home">Back to top</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__main">
+      <!-- Brand Block -->
+      <div class="footer__brand-block">
+        <div class="footer__corner-bracket" aria-hidden="true"></div>
+        <h3 class="footer__brand-title">CIPHER</h3>
+        <p class="footer__brand-sub">Student Association of<br>Computer Science &amp; Engineering</p>
+        <div class="footer__brand-line" aria-hidden="true"></div>
+        <p class="footer__brand-desc">A community of builders, innovators and problem solvers.</p>
+      </div>
+
+      <!-- Vertical Divider 1 -->
+      <div class="footer__v-divider" aria-hidden="true"><span class="footer__v-dot"></span></div>
+
+      <!-- Explore Nav -->
+      <div class="footer__nav-block">
+        <h4 class="footer__heading">EXPLORE <span class="footer__heading-dash" aria-hidden="true"></span></h4>
+        <ul class="footer__nav-links">
+          <li><a href="#about">About</a></li>
+          <li><a href="#archive-section">Activities</a></li>
+          <li><a href="#events">Events</a></li>
+          <li><a href="#leadership">Team</a></li>
+          <li><a href="#join" data-open-join>Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Vertical Divider 2 -->
+      <div class="footer__v-divider" aria-hidden="true"><span class="footer__v-dot"></span></div>
+
+      <!-- Connect Block -->
+      <div class="footer__connect-block">
+        <h4 class="footer__heading">CONNECT <span class="footer__heading-dash" aria-hidden="true"></span></h4>
+        <div class="footer__social-row">
+          <a href="mailto:agentblazer@sjec.ac.in" class="footer__social-btn" aria-label="Email" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/cipher-sjec-567344337?utm_source=share_via&amp;utm_content=profile&amp;utm_medium=member_android" class="footer__social-btn" aria-label="LinkedIn" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45a1.6 1.6 0 0 0-1.6 1.6 1.6 1.6 0 0 0 1.6 1.6 1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0-1.6-1.6Z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/ciphersjec?stkn=eWh4dWptaWtjNHo0" class="footer__social-btn" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          </a>
+          <a href="https://github.com" class="footer__social-btn" aria-label="GitHub" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Horizontal Divider -->
+    <div class="footer__bottom-line" aria-hidden="true">
+      <span class="footer__line-dot footer__line-dot--left"></span>
+      <span class="footer__line-dot footer__line-dot--right"></span>
+    </div>
+
+    <!-- Sub Footer -->
+    <div class="footer__sub">
+      <p class="footer__copyright"><span class="footer__dash">&mdash;</span> &copy; 2026 CIPHER SJEC. All rights reserved.</p>
+      <p class="footer__dev">Designed &amp; Developed by CIPHER <span class="footer__dash">&mdash;</span></p>
+    </div>
+  </footer>
+
+  <!-- Event modal -->
+  <dialog id="event-modal" class="modal" aria-labelledby="em-title">
+    <button class="modal__close" data-close type="button" aria-label="Close">✕</button>
+    <div class="modal__grid">
+      <div>
+        <p class="tag" id="em-tag"></p>
+        <h3 id="em-title"></h3>
+        <p class="meta" id="em-meta"></p>
+        <div id="em-body"></div>
+      </div>
+      <div class="gallery">
+        <div class="gallery__frame" id="em-frame"></div>
+        <div class="gallery__nav">
+          <button type="button" id="em-prev" aria-label="Previous photo">←</button>
+          <span id="em-count">01 / 01</span>
+          <button type="button" id="em-next" aria-label="Next photo">→</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Join modal -->
+  <dialog id="join-modal" class="modal modal--form" aria-labelledby="jm-title">
+    <button class="modal__close" data-close type="button" aria-label="Close">✕</button>
+    <p class="tag">// access club</p>
+    <h3 id="jm-title">Join CIPHER</h3>
+    <form id="join-form" novalidate>
+      <label>Full name<input name="name" required minlength="2" maxlength="80" autocomplete="name"></label>
+      <label>College email<input name="email" type="email" required autocomplete="email"></label>
+      <div class="row">
+        <label>USN<input name="usn" maxlength="20"></label>
+        <label>Year
+          <select name="year"><option value="">Select</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </label>
+      </div>
+      <label>Interested in
+        <select name="interest"><option value="">Select</option><option>Web</option><option>AI/ML</option><option>Cybersecurity</option><option>Blockchain</option><option>Design</option><option>Events</option><option>Other</option></select>
+      </label>
+      <label>Anything you'd like to tell us?<textarea name="message" rows="3" maxlength="500"></textarea></label>
+      <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <p class="form-status" id="join-status" role="status"></p>
+      <button class="btn btn--solid" type="submit" id="join-submit">Send application</button>
+    </form>
+  </dialog>
+
+
+  <script src="app.js?v=20260924_2330" defer></script>
+</body>
+</html>

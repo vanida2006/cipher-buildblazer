@@ -1,0 +1,29 @@
+{
+  "name": "cipher-sjec",
+  "version": "1.0.0",
+  "description": "CIPHER - Student Association of Computer Science & Engineering (SJEC)",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js",
+    "build": "node -e \"console.log('Build complete')\"",
+    "lint": "node -e \"console.log('Lint complete')\"",
+    "seed": "node scripts/seed.js",
+    "make-admin": "node scripts/make-admin.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "express": "^5.0.0",
+    "express-rate-limit": "^8.0.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.4.0",
+    "zod": "^4.0.0"
+  }
+}
