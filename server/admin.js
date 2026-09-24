@@ -11,6 +11,9 @@ if (!MAIN_API) {
 }
 
 const managePath = path.join(__dirname, '..', 'public', 'manage');
+const imagePath = path.join(__dirname, '..', 'public', 'img');
+
+app.use('/img', express.static(imagePath));
 
 app.use(
   '/manage',
