@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260924_2330">
+  <link rel="stylesheet" href="styles.css?v=20260925_2315">
   <script>
     // Safeguard: Ensure page scrolling is never stuck in locked state
     setTimeout(function() { document.body.classList.remove('locked'); }, 800);
@@ -260,9 +260,22 @@
 
     <!-- LEADERSHIP -->
     <section id="leadership" class="section">
-      <p class="tag">// governance</p>
-      <h2 class="glow">Leadership Structure</h2>
-      <div class="carousel-wrapper" id="leaders-wrapper">
+      <div class="leadership__header">
+        <div>
+          <p class="tag">// governance</p>
+          <h2 class="glow">Leadership Structure</h2>
+        </div>
+        <div class="carousel__controls" aria-label="Leadership scroll controls">
+          <button class="carousel__ctrl-btn" id="leaders-prev" type="button" aria-label="Scroll left" title="Scroll left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <span class="carousel__hint">// DRAG / SCROLL</span>
+          <button class="carousel__ctrl-btn" id="leaders-next" type="button" aria-label="Scroll right" title="Scroll right">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="carousel-wrapper" id="leaders-wrapper" tabindex="0" role="region" aria-label="Leadership team carousel (scrollable)">
         <div class="carousel" id="leaders" aria-live="polite"></div>
       </div>
     </section>
@@ -570,31 +583,25 @@
 
     <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>TERMINAL // ARCHIVES &amp; ACTIVITIES</span></div>
 
-    <!-- ARCHIVE -->
-    <section class="section" id="archive-section">
-      <p class="tag">// ACTIVITIES</p>
+    <!-- ACTIVITIES -->
+    <section id="activities" class="section">
+      <p class="tag">// activities</p>
       <h2 class="glow">Activities</h2>
-      <p class="lead">Hands-on workshops, industrial visits, and technical sessions run by the Cipher Association &mdash; spanning AI, blockchain, research tooling, and career prep.</p>
-
-      <div class="archive-controls">
-        <label class="archive-search-wrap">
-          <svg class="archive-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <span class="sr">Search activities</span>
-          <input id="archive-search" type="search" placeholder="Search activities..." autocomplete="off">
-        </label>
-        <div class="chips archive-chips" id="archive-chips" role="group" aria-label="Filter activities by category">
+      <p class="section-desc">Explore CSE clubs, technical labs, workshops, and campus initiatives at SJEC.</p>
+      <div class="activities-toolbar">
+        <div class="activities-search-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="activity-search" placeholder="Search activities..." autocomplete="off">
+        </div>
+        <div class="chips" id="activity-chips" role="group" aria-label="Filter activities by category">
           <button class="chip" type="button" data-cat="ALL" aria-pressed="true">ALL</button>
-          <button class="chip" type="button" data-cat="WORKSHOP" aria-pressed="false">WORKSHOP</button>
-          <button class="chip" type="button" data-cat="INDUSTRIAL VISIT" aria-pressed="false">INDUSTRIAL VISIT</button>
-          <button class="chip" type="button" data-cat="TECH TALK" aria-pressed="false">TECH TALK</button>
-          <button class="chip" type="button" data-cat="COMPETITION" aria-pressed="false">COMPETITION</button>
-          <button class="chip" type="button" data-cat="RESEARCH" aria-pressed="false">RESEARCH</button>
-          <button class="chip" type="button" data-cat="CAREER PREP" aria-pressed="false">CAREER PREP</button>
+          <button class="chip" type="button" data-cat="ASSOCIATIONS" aria-pressed="false">ASSOCIATIONS</button>
+          <button class="chip" type="button" data-cat="AI & TECH HUBS" aria-pressed="false">AI & TECH HUBS</button>
+          <button class="chip" type="button" data-cat="EVENTS" aria-pressed="false">EVENTS</button>
+          <button class="chip" type="button" data-cat="OUTREACH" aria-pressed="false">OUTREACH</button>
         </div>
       </div>
-
-      <div class="archive-grid" id="archive"></div>
-      <p class="empty-msg" id="archive-empty" hidden>No activities match your search.</p>
+      <div class="activities-grid" id="activities-grid"></div>
     </section>
 
     <div class="sec-divider" aria-hidden="true"><span class="sec-divider__badge"><span class="sec-divider__dot"></span>COMMUNITY // RECRUITMENT</span></div>
@@ -634,6 +641,7 @@
           <li><a href="#events">Events</a></li>
           <li><a href="#leadership">Team</a></li>
           <li><a href="#join" data-open-join>Contact</a></li>
+          <li><a href="manage/" title="Centralized Management Portal">Admin Portal</a></li>
         </ul>
       </div>
 
@@ -719,6 +727,6 @@
   </dialog>
 
 
-  <script src="app.js?v=20260924_2330" defer></script>
+  <script src="app.js?v=20260925_2315" defer></script>
 </body>
 </html>

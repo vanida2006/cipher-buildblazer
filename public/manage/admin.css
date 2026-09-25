@@ -82,11 +82,48 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
   min-height: 100vh;
 }
 
-@media (max-width: 900px) {
-  .admin-layout { grid-template-columns: 1fr; }
+/* ---- Hamburger toggle button (mobile only) ---- */
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 120;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--sidebar-bg);
+  border: 1px solid var(--line);
+  color: var(--g);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+.hamburger-btn:hover {
+  border-color: var(--g);
+  background: rgba(0, 255, 102, 0.12);
+  box-shadow: 0 0 18px rgba(0, 255, 102, 0.3);
+}
+.hamburger-btn svg { pointer-events: none; }
+
+/* ---- Sidebar backdrop overlay (mobile only) ---- */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sidebar-backdrop.open {
+  opacity: 1;
 }
 
-/* Sidebar */
+/* Sidebar Base */
 .admin-sidebar {
   background: var(--sidebar-bg);
   border-right: 1px solid var(--line);
@@ -99,6 +136,76 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
   height: 100vh;
   overflow-y: auto;
   z-index: 10;
+}
+
+/* ---- Mobile Responsive Layout ---- */
+@media (max-width: 900px) {
+  .admin-layout {
+    display: block;
+  }
+
+  .hamburger-btn {
+    display: inline-flex;
+  }
+
+  .admin-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 270px;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: none;
+  }
+  .admin-sidebar.open {
+    transform: translateX(0) !important;
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .admin-main {
+    padding-top: 3.8rem;  /* room for hamburger btn */
+  }
+
+  /* Stack topbar vertically on mobile */
+  .admin-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-heading-group h1 {
+    font-size: 1.2rem;
+  }
+
+  /* Ensure stats fit on small screens */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+  @media (max-width: 480px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  /* Make panel cards full-width */
+  .panel-card {
+    padding: 1rem;
+  }
+
+  /* Toolbar wrapping */
+  .toolbar {
+    flex-wrap: wrap;
+  }
 }
 
 .sidebar-header {
@@ -299,7 +406,7 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
 }
 
 @media (max-width: 768px) {
-  .admin-main { padding: 1.2rem 1rem 3rem; }
+  .admin-main { padding: 3.8rem 1rem 3rem; }
 }
 
 /* Top bar in main */
@@ -905,6 +1012,22 @@ tr:hover td { background: rgba(0, 255, 102, 0.035); }
 }
 .login-status-box.err { color: var(--red); }
 .login-status-box.ok { color: var(--g); }
+
+.login-back-link {
+  font-size: .78rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+.login-back-link:hover {
+  color: var(--g) !important;
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+  transform: translateX(-2px);
+}
 
 /* ---------------- Toast Notification ---------------- */
 .toast {

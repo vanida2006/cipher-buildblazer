@@ -164,6 +164,37 @@ try {
     ).run('Carol Vanida Quadras', '24a44.carol@sjec.ac.in', '4s024cs044', 2, 'Web', 'Application to Cipher', 'new', '2026-09-21 14:53:55');
   }
 
+  const hasUrls = db.prepare("SELECT COUNT(*) AS c FROM activities WHERE url IS NOT NULL AND url != ''").get().c;
+  if (hasUrls < 20) {
+    db.exec('DELETE FROM activities;');
+    const activitiesToSeed = [
+      ["CIPHER Student Association", "ASSOCIATIONS", "https://sjec.ac.in/cipher", 1],
+      ["CSI Student Branch", "ASSOCIATIONS", "https://sjec.ac.in/csi", 2],
+      ["Google Developer Student Club", "ASSOCIATIONS", "https://sjec.ac.in/google-developer-club", 3],
+      ["Intel Unnati Artificial Intelligence Laboratory", "AI & TECH HUBS", "https://sjec.ac.in/intel-unnati-artificial-intelligence-laboratory", 4],
+      ["Azure AI Foundry Technical Session", "AI & TECH HUBS", "https://sjec.ac.in/events/tech-session-on-azure-ai-foundry", 5],
+      ["Applied Machine Learning Workshop", "AI & TECH HUBS", "https://sjec.ac.in/cipher/activity/applied-machine-learning", 6],
+      ["HackTO Future 20", "EVENTS", "https://sjec.ac.in/cipher/activity/hackto-future-20", 7],
+      ["The Winter Hackathon 2026", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/the-winter-hackathon-2026", 8],
+      ["Tech It Out Quiz Competition", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/tech-it-out", 9],
+      ["CSE Tiara 2019 – Bazzinga", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/cse-tiara-2019-report-on-bazzinga", 10],
+      ["CSE Tiara 2019 – Papyrus", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/cse-tiara-2019-report-on-papyrus", 11],
+      ["CIPHER Inaugural", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/cse-student-association-cipher-inaugural", 12],
+      ["Branch Entry", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/branch-entry-1", 13],
+      ["Awareness on Certification Courses", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/awareness-on-certification-courses-offered-by-cse", 14],
+      ["Cyber Security & Career Pathways", "EVENTS", "https://sjec.ac.in/index.php/department/computer-science/activity/a-hands-on-session-on-cyber-security-career-pathways", 15],
+      ["Writing an IEEE Research Paper", "EVENTS", "https://sjec.ac.in/department/computer-science/activity/cse-session-on-writing-an-ieee-research-paper", 16],
+      ["Student Outreach Program – Kukkaje", "OUTREACH", "https://sjec.ac.in/index.php/department/computer-science/activity/student-out-reach-program", 17],
+      ["Student Outreach Program – Padumarnaadu", "OUTREACH", "https://sjec.ac.in/index.php/department/computer-science/activity/student-outreach-program", 18],
+      ["Student Outreach Program – Kankanady and Jokatte", "OUTREACH", "https://sjec.ac.in/index.php/department/computer-science/activity/student-outreach-program-2", 19],
+      ["Freshers Onboarding Programme", "OUTREACH", "https://sjec.ac.in/cipher/activity/freshers-onboarding-programme", 20]
+    ];
+    const insertAct = db.prepare('INSERT INTO activities (title, category, url, sort_order) VALUES (?, ?, ?, ?)');
+    for (const act of activitiesToSeed) {
+      insertAct.run(act[0], act[1], act[2], act[3]);
+    }
+  }
+
   // Seed default site_content if not present
   const defaultContent = [
     ['about_title', 'Who we are'],

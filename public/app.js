@@ -777,7 +777,11 @@
         const gapWidth = unit * gapRatio;
 
         const startX = (W - totalWordW) / 2;
-        const fs = Math.floor(H * 0.80);
+        // Constrain font size by BOTH height AND width so letters don't overlap on mobile
+        const fsFromHeight = Math.floor(H * 0.80);
+        const maxLetterSlot = weights.reduce((mx, w) => Math.max(mx, w), 0) * unit;
+        const fsFromWidth = Math.floor(maxLetterSlot * 1.55);
+        const fs = Math.min(fsFromHeight, fsFromWidth);
 
         // Thinner, cleaner font rendering: weight 700 with fillText creates defined strokes with open counters
         o.font = '700 ' + fs + 'px "JetBrains Mono", monospace';
@@ -983,9 +987,12 @@
     return data;
   };
 
-  /* ---------------- leadership (infinite carousel) ---------------- */
+  /* ---------------- leadership (infinite scrollable carousel) ---------------- */
   async function loadLeaders() {
     const box = $('#leaders');
+    const wrapper = $('#leaders-wrapper') || box?.parentElement;
+    if (!box || !wrapper) return;
+
     try {
       const list = await api('/leadership');
       if (!list.length) { box.textContent = ''; return; }
@@ -1006,18 +1013,160 @@
         return h('article', { class: 'leader', 'aria-label': `${m.name}, ${m.role}` }, photo, info);
       };
 
-      /* build original set + clone for seamless loop */
-      const originals = list.map(buildCard);
-      const clones = list.map(buildCard);          /* second identical set */
-      box.replaceChildren(...originals, ...clones);
+      /* build 3 identical sets for infinite bidirectional seamless wrapping */
+      const set1 = list.map(buildCard);
+      const set2 = list.map(buildCard);
+      const set3 = list.map(buildCard);
+      box.replaceChildren(...set1, ...set2, ...set3);
 
-      /* calculate animation duration: ~8s per card feels smooth */
-      const cardCount = list.length;
-      const duration = cardCount * 8;
-      box.style.setProperty('--carousel-duration', duration + 's');
+      let unitWidth = 0;
+      const measure = () => {
+        unitWidth = box.scrollWidth / 3;
+      };
 
-      /* disable animation if reduced-motion */
-      if (reduceMotion) box.classList.add('no-animation');
+      requestAnimationFrame(() => {
+        measure();
+        if (unitWidth > 0 && wrapper.scrollLeft === 0) {
+          wrapper.scrollLeft = unitWidth;
+        }
+      });
+
+      // Wrap-around handler on scroll to ensure truly infinite scrolling in both directions
+      let isWrapping = false;
+      const checkWrap = () => {
+        if (!unitWidth || isWrapping) return;
+        if (wrapper.scrollLeft >= unitWidth * 2) {
+          isWrapping = true;
+          wrapper.scrollLeft -= unitWidth;
+          isWrapping = false;
+        } else if (wrapper.scrollLeft <= 5) {
+          isWrapping = true;
+          wrapper.scrollLeft += unitWidth;
+          isWrapping = false;
+        }
+      };
+
+      wrapper.addEventListener('scroll', checkWrap, { passive: true });
+
+      // State tracking for user interaction & auto-scroll
+      let isInteracting = false;
+      let idleTimer = null;
+
+      const pauseAuto = () => {
+        isInteracting = true;
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          isInteracting = false;
+        }, 1800);
+      };
+
+      // Continuous 60fps auto-scroll when user is idle
+      const autoScrollLoop = () => {
+        if (!isInteracting && !reduceMotion && unitWidth > 0) {
+          wrapper.scrollLeft += 0.75;
+          checkWrap();
+        }
+        requestAnimationFrame(autoScrollLoop);
+      };
+      requestAnimationFrame(autoScrollLoop);
+
+      // Pause auto-scroll on hover
+      wrapper.addEventListener('mouseenter', () => { isInteracting = true; });
+      wrapper.addEventListener('mouseleave', () => {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => { isInteracting = false; }, 600);
+      });
+
+      // 1. Mouse wheel horizontal scrolling
+      wrapper.addEventListener('wheel', (e) => {
+        pauseAuto();
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        wrapper.scrollLeft += delta;
+        checkWrap();
+        e.preventDefault();
+      }, { passive: false });
+
+      // 2. Click and Drag (Grab-to-scroll)
+      let isDragging = false;
+      let startX = 0;
+      let scrollStart = 0;
+      let hasDragged = false;
+
+      wrapper.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('a')) return;
+        isDragging = true;
+        hasDragged = false;
+        startX = e.clientX;
+        scrollStart = wrapper.scrollLeft;
+        wrapper.classList.add('is-dragging');
+        try { wrapper.setPointerCapture(e.pointerId); } catch {}
+        pauseAuto();
+      });
+
+      wrapper.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 4) hasDragged = true;
+        wrapper.scrollLeft = scrollStart - dx;
+        checkWrap();
+        pauseAuto();
+      });
+
+      const endDrag = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        wrapper.classList.remove('is-dragging');
+        try { wrapper.releasePointerCapture(e.pointerId); } catch {}
+        pauseAuto();
+      };
+
+      wrapper.addEventListener('pointerup', endDrag);
+      wrapper.addEventListener('pointercancel', endDrag);
+
+      // Prevent link clicks if user was actively dragging
+      wrapper.addEventListener('click', (e) => {
+        if (hasDragged) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      // 3. Arrow buttons navigation
+      const prevBtn = $('#leaders-prev');
+      const nextBtn = $('#leaders-next');
+      const scrollStep = () => {
+        const firstCard = box.querySelector('.leader');
+        return firstCard ? firstCard.offsetWidth + 26 : 310;
+      };
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          pauseAuto();
+          wrapper.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          pauseAuto();
+          wrapper.scrollBy({ left: scrollStep(), behavior: 'smooth' });
+        });
+      }
+
+      // 4. Keyboard navigation
+      wrapper.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+          pauseAuto();
+          wrapper.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
+          e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+          pauseAuto();
+          wrapper.scrollBy({ left: scrollStep(), behavior: 'smooth' });
+          e.preventDefault();
+        }
+      });
+
+      // Recalculate on window resize
+      window.addEventListener('resize', measure, { passive: true });
     } catch {
       box.replaceChildren(h('p', { class: 'err-msg', text: 'Could not load leadership. Refresh to try again.' }));
     }
@@ -1335,15 +1484,17 @@
     initEventCards();
   }
 
-  async function loadArchive() {
-    const grid = $('#archive'), empty = $('#archive-empty'), input = $('#archive-search');
-    const chipsWrap = $('#archive-chips');
+  async function loadActivities() {
+    const grid = $('#activities-grid');
+    const input = $('#activity-search');
+    const chipsWrap = $('#activity-chips');
+    if (!grid) return;
+    
     let activeCat = 'ALL';
 
     try {
       const list = await api('/activities');
 
-      // Category chip filtering
       if (chipsWrap) {
         chipsWrap.addEventListener('click', (e) => {
           const btn = e.target.closest('.chip');
@@ -1355,7 +1506,7 @@
       }
 
       const draw = () => {
-        const q = input.value.trim().toLowerCase();
+        const q = (input ? input.value : '').trim().toLowerCase();
         const shown = list.filter((a) => {
           const matchSearch = a.title.toLowerCase().includes(q);
           const matchCat = activeCat === 'ALL' || (a.category || '').toUpperCase() === activeCat;
@@ -1364,29 +1515,22 @@
 
         grid.replaceChildren(...shown.map((a, i) => {
           const idx = String(list.indexOf(a) + 1).padStart(2, '0');
-          const card = h('div', { class: 'archive-card' },
-            h('div', { class: 'archive-card__top' },
-              h('span', { class: 'archive-card__number', text: idx })
-            ),
-            h('h4', { class: 'archive-card__title', text: a.title }),
-            h('div', { class: 'archive-card__footer' },
-              h('span', { class: 'archive-card__badge', text: a.category || 'WORKSHOP' })
+          const card = h('a', { class: 'activity-card', href: a.url || '#', target: '_blank', rel: 'noopener' },
+            h('span', { class: 'activity-card__num', text: idx }),
+            h('h4', { class: 'activity-card__title', text: a.title }),
+            h('div', { class: 'activity-card__footer' },
+              h('span', { class: 'activity-card__cat', text: a.category || 'EVENTS' }),
+              h('span', { class: 'activity-card__action', text: 'OPEN LINK ↗' })
             )
           );
-          if (a.url) {
-            card.style.cursor = 'pointer';
-            card.addEventListener('click', () => window.open(a.url, '_blank', 'noopener'));
-          }
           return card;
         }));
-
-        empty.hidden = shown.length > 0;
       };
 
-      input.addEventListener('input', draw);
+      if (input) input.addEventListener('input', draw);
       draw();
     } catch {
-      grid.replaceChildren(h('div', { class: 'archive-card', text: 'Could not load activities.' }));
+      grid.replaceChildren(h('div', { class: 'activity-card', text: 'Could not load activities.' }));
     }
   }
 
@@ -1662,7 +1806,7 @@
   /* ---------------- boot ---------------- */
   runIntro(); startWaves(); startHeroDots();
   initPillars();
-  loadLeaders(); loadEvents(); loadArchive(); loadContent();
+  loadLeaders(); loadEvents(); loadActivities(); loadContent();
   initScrollReveal();
   initAboutHoverEffect();
 })();

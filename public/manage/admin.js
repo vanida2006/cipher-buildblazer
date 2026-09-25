@@ -30,6 +30,7 @@
       Events: ['SUPER_ADMIN', 'EVENT_MANAGER'],
       Registrations: ['SUPER_ADMIN', 'EVENT_MANAGER'],
       Members: ['SUPER_ADMIN', 'CONTENT_MANAGER'],
+      Activities: ['SUPER_ADMIN', 'CONTENT_MANAGER'],
       Content: ['SUPER_ADMIN', 'CONTENT_MANAGER'],
       Admins: ['SUPER_ADMIN'],
       Settings: ['SUPER_ADMIN', 'EVENT_MANAGER', 'CONTENT_MANAGER']
@@ -75,6 +76,7 @@
       search: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
       trash: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
       eye: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+      eyeOff: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>',
       edit: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>',
       download: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
       clock: '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
@@ -296,13 +298,51 @@
   initOrbs();
   initDataStream();
 
+  /* ---------------- Navigation to Main Website ---------------- */
+  function navigateToMainSite(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+      const loc = window.location;
+      if (loc.protocol === 'file:') {
+        loc.href = '../index.html';
+        return;
+      }
+      const path = loc.pathname;
+      if (path.includes('/manage')) {
+        const base = path.replace(/\/manage(\/.*)?$/, '');
+        loc.href = (base || '') + '/' || '../index.html';
+      } else {
+        loc.href = '../index.html';
+      }
+    } catch (_err) {
+      window.location.href = '../index.html';
+    }
+  }
+
   /* =========================================================================
      1. LOGIN SCREEN
      ========================================================================= */
   function renderLogin() {
     const statusBox = h('div', { class: 'login-status-box' });
     const userInput = h('input', { name: 'username', required: true, placeholder: 'admin / username', autocomplete: 'username' });
-    const passInput = h('input', { name: 'password', type: 'password', required: true, placeholder: 'Enter password', autocomplete: 'current-password' });
+    const passInput = h('input', { name: 'password', type: 'password', required: true, placeholder: 'Enter password', autocomplete: 'current-password', style: 'padding-right:2.6rem;' });
+    
+    const togglePassBtn = h('button', {
+      type: 'button',
+      class: 'toggle-password-btn',
+      title: 'Show password',
+      ariaLabel: 'Toggle password visibility',
+      style: 'position:absolute;right:0.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--g-dim);cursor:pointer;padding:4px;display:inline-flex;align-items:center;justify-content:center;transition:color 0.2s;',
+      onclick: () => {
+        const isSecret = passInput.type === 'password';
+        passInput.type = isSecret ? 'text' : 'password';
+        togglePassBtn.title = isSecret ? 'Hide password' : 'Show password';
+        togglePassBtn.style.color = isSecret ? 'var(--g)' : 'var(--g-dim)';
+        togglePassBtn.replaceChildren(svgIcon(isSecret ? 'eyeOff' : 'eye', 16));
+      }
+    }, svgIcon('eye', 16));
+
+    const passWrap = h('div', { style: 'position:relative;width:100%;' }, passInput, togglePassBtn);
     const rememberBox = h('input', { type: 'checkbox', name: 'remember', style: 'width:auto;margin:0;accent-color:var(--g);cursor:pointer;' });
     const submitBtn = h('button', { class: 'btn solid', type: 'submit', style: 'width:100%;margin-top:.8rem;' }, 'Login to Dashboard →');
 
@@ -347,13 +387,18 @@
         h('p', { text: 'Centralized control system for events, registrations, content, and community moderation.' })
       ),
       field('Admin Email / Username', userInput),
-      field('Password', passInput),
+      field('Password', passWrap),
       h('div', { style: 'display:flex;align-items:center;justify-content:space-between;margin:.4rem 0 1rem 0;' },
         h('label', { style: 'display:inline-flex;align-items:center;gap:.5rem;margin:0;cursor:pointer;' },
           rememberBox,
           h('span', { style: 'font-size:.76rem;color:var(--text-dim);', text: 'Remember me' })
         ),
-        h('a', { href: '/', style: 'font-size:.76rem;color:var(--g-dim);', text: '← Back to Website' })
+        h('a', {
+          href: '/',
+          class: 'login-back-link',
+          style: 'font-size:.76rem;color:var(--g-dim);cursor:pointer;text-decoration:none;',
+          text: '← Back to Website'
+        })
       ),
       statusBox,
       submitBtn
@@ -371,6 +416,7 @@
     Events: viewEvents,
     Registrations: viewRegistrations,
     Members: viewMembers,
+    Activities: viewActivities,
     Content: viewContent,
     Admins: viewAdmins,
     Settings: viewSettings
@@ -383,12 +429,37 @@
     activeTabName = active;
     const mainArea = h('main', { class: 'admin-main' });
 
+    // --- Mobile sidebar toggle helpers ---
+    const backdrop = h('div', { class: 'sidebar-backdrop' });
+    let sidebarEl = null;
+
+    function openSidebar() {
+      if (sidebarEl) sidebarEl.classList.add('open');
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      if (sidebarEl) sidebarEl.classList.remove('open');
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    const hamburger = h('button', {
+      class: 'hamburger-btn',
+      'aria-label': 'Open menu',
+      onclick: openSidebar,
+      html: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
+    });
+
     // Sidebar navigation — filtered by the logged-in admin's role
     const navItems = [
       { id: 'Dashboard', icon: 'dashboard', label: 'Dashboard' },
       { id: 'Events', icon: 'events', label: 'Events' },
       { id: 'Registrations', icon: 'registrations', label: 'Registrations' },
       { id: 'Members', icon: 'members', label: 'Members' },
+      { id: 'Activities', icon: 'content', label: 'Activities' },
       { id: 'Content', icon: 'content', label: 'Content' },
       { id: 'Admins', icon: 'settings', label: 'Admins' },
       { id: 'Settings', icon: 'settings', label: 'Settings' }
@@ -412,7 +483,10 @@
           navItems.map((item) => {
             const btn = h('button', {
               class: `nav-item ${item.id === active ? 'active' : ''}`,
-              onclick: () => renderShell(item.id),
+              onclick: () => {
+                closeSidebar();
+                renderShell(item.id);
+              },
               onmousemove: (e) => {
                 const rect = btn.getBoundingClientRect();
                 btn.style.setProperty('--mx', `${e.clientX - rect.left}px`);
@@ -434,7 +508,11 @@
             h('div', { class: 'user-badge-role', text: ROLE_LABELS[currentRole] || currentRole })
           )
         ),
-        h('a', { href: '/', class: 'sidebar-action-btn btn-site-link' },
+        h('a', {
+          href: '/',
+          class: 'sidebar-action-btn btn-site-link',
+          title: 'Return to CIPHER Main Website'
+        },
           svgIcon('external', 14),
           h('span', { text: 'View Public Site' })
         ),
@@ -445,8 +523,10 @@
       )
     );
 
+    sidebarEl = sidebar;
+
     const layout = h('div', { class: 'admin-layout' }, sidebar, mainArea);
-    app.replaceChildren(layout);
+    app.replaceChildren(hamburger, backdrop, layout);
 
     // Render active tab view
     if (views[active]) {
@@ -1717,6 +1797,120 @@
       passForm,
       logPanel
     );
+  }
+
+  /* =========================================================================
+     ACTIVITIES MANAGEMENT
+     ========================================================================= */
+  async function viewActivities(root) {
+    const data = await api('/manage/activities');
+
+    const renderRow = (a) => {
+      const editBtn = h('button', {
+        class: 'btn ghost xs',
+        title: 'Edit',
+        onclick: () => openActivityEditorModal(a, () => renderShell('Activities'))
+      }, svgIcon('edit', 14));
+
+      const delBtn = h('button', {
+        class: 'btn ghost xs error',
+        title: 'Delete',
+        html: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+        onclick: guard(async () => {
+          if (!confirm(`Delete activity "${a.title}"?`)) return;
+          await api(`/manage/activities/${a.id}`, { method: 'DELETE' });
+          toast('Activity deleted');
+          renderShell('Activities');
+        })
+      });
+
+      return h('tr', {},
+        h('td', { class: 'text-mono', style: 'color:var(--g-dim);', text: String(a.id).padStart(3, '0') }),
+        h('td', { style: 'font-weight:500;color:var(--white);', text: a.title }),
+        h('td', {}, h('span', { class: 'badge green', text: a.category || 'EVENTS' })),
+        h('td', { style: 'max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' }, 
+          a.url ? h('a', { href: a.url, target: '_blank', style: 'color:var(--g);' }, a.url) : h('span', {style: 'color:var(--g-dim)'}, '—')
+        ),
+        h('td', { class: 'text-mono text-center', text: String(a.sort_order) }),
+        h('td', { class: 'actions-cell right' }, editBtn, delBtn)
+      );
+    };
+
+    const table = h('div', { class: 'table-container' },
+      h('table', {},
+        h('thead', {},
+          h('tr', {},
+            h('th', { style: 'width:60px;' }, '#'),
+            h('th', { text: 'Title' }),
+            h('th', { text: 'Category' }),
+            h('th', { text: 'URL' }),
+            h('th', { style: 'width:80px;text-align:center;', text: 'Sort' }),
+            h('th', { style: 'width:120px;text-align:right;', text: 'Actions' })
+          )
+        ),
+        h('tbody', {}, ...data.map(renderRow))
+      )
+    );
+
+    root.replaceChildren(
+      h('div', { class: 'admin-topbar' },
+        h('div', { class: 'page-heading-group' },
+          h('h1', {}, svgIcon('content', 24), 'Activities'),
+          h('p', { text: 'Manage the CSE campus activities.' })
+        ),
+        h('div', { class: 'topbar-actions' },
+          h('button', {
+            class: 'btn solid',
+            html: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Activity',
+            onclick: () => openActivityEditorModal(null, () => renderShell('Activities'))
+          })
+        )
+      ),
+      data.length ? table : h('div', { class: 'empty-state panel-card' }, 'No activities found. Add one above.')
+    );
+  }
+
+  function openActivityEditorModal(activity, onComplete) {
+    const isEdit = !!activity;
+    const titleInp = h('input', { type: 'text', required: true, value: activity ? activity.title : '', placeholder: 'Activity title' });
+    const catSel = h('select', {},
+      ...['ASSOCIATIONS', 'AI & TECH HUBS', 'EVENTS', 'OUTREACH'].map(c =>
+        h('option', { value: c, selected: (activity && activity.category === c) ? true : false }, c)
+      )
+    );
+    const urlInp = h('input', { type: 'url', value: activity && activity.url ? activity.url : '', placeholder: 'https://sjec.ac.in/...' });
+    const sortOrderInp = h('input', { type: 'number', value: String(activity ? activity.sort_order : 0) });
+
+    const formBox = h('form', {},
+      h('div', { class: 'grid2' },
+        field('Title', titleInp),
+        field('Category', catSel)
+      ),
+      field('Destination URL', urlInp),
+      field('Sort Order (lower = first)', sortOrderInp)
+    );
+
+    showModal(isEdit ? `Edit Activity: ${activity.title}` : 'Add New Activity', formBox, async () => {
+      const title = titleInp.value.trim();
+      if (!title) throw new Error('Title is required.');
+
+      const payload = {
+        title,
+        category: catSel.value,
+        url: urlInp.value.trim() || null,
+        sort_order: parseInt(sortOrderInp.value, 10) || 0
+      };
+
+      if (isEdit) {
+        await api(`/manage/activities/${activity.id}`, { method: 'PUT', body: payload });
+        toast('Activity updated');
+      } else {
+        await api('/manage/activities', { method: 'POST', body: payload });
+        toast('Activity created');
+      }
+
+      if (onComplete) onComplete();
+    }, isEdit ? 'Save Changes' : 'Create Activity');
   }
 
   /* ---------------- Boot ---------------- */

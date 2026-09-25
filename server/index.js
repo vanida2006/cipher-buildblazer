@@ -36,6 +36,20 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
   }
 }));
 
+// Admin and portal convenience redirects
+app.get('/admin', (_req, res) => res.redirect('/manage/'));
+app.get('/manage', (_req, res) => res.redirect('/manage/'));
+app.get('/website', (_req, res) => res.redirect('/'));
+app.get('/home', (_req, res) => res.redirect('/'));
+app.get('/main', (_req, res) => res.redirect('/'));
+
+// Fallback for any GET request not matched by static assets or API to serve main site
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/manage')) return next();
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'Image is larger than 4 MB' });
