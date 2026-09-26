@@ -1077,14 +1077,19 @@
         idleTimer = setTimeout(() => { isInteracting = false; }, 600);
       });
 
-      // 1. Mouse wheel horizontal scrolling
+      // 1. Mouse wheel horizontal scrolling (only for horizontal swipe/shift-scroll)
       wrapper.addEventListener('wheel', (e) => {
         pauseAuto();
-        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-        wrapper.scrollLeft += delta;
-        checkWrap();
-        e.preventDefault();
+        const isHorizontalGesture = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
+        if (isHorizontalGesture) {
+          const delta = e.shiftKey ? (e.deltaY || e.deltaX) : e.deltaX;
+          wrapper.scrollLeft += delta;
+          checkWrap();
+          e.preventDefault();
+        }
+        // Vertical wheel scrolling passes through so user can scroll down/up past leadership section
       }, { passive: false });
+
 
       // 2. Click and Drag (Grab-to-scroll)
       let isDragging = false;
@@ -1401,11 +1406,32 @@
         if (content.about_title && $('#about-title')) $('#about-title').textContent = content.about_title;
         if (content.about_text && $('#about-lead')) $('#about-lead').textContent = content.about_text;
         if (content.hero_subtitle && $('#hero-sub')) $('#hero-sub').textContent = content.hero_subtitle;
+
+        // Announcement broadcast banner
+        const banner = $('#announcement-banner');
+        const bannerText = $('#announcement-text');
+        const isAnnounceActive = content.announcement_active === '1' || content.announcement_active === 1 || content.announcement_active === true;
+        if (banner && bannerText) {
+          if (isAnnounceActive && content.announcement_text) {
+            bannerText.textContent = content.announcement_text;
+            banner.hidden = false;
+          } else {
+            banner.hidden = true;
+          }
+        }
+
+        // Footer contact links
+        if (content.contact_email && $('#footer-email')) $('#footer-email').href = `mailto:${content.contact_email}`;
+        if (content.contact_location && $('#footer-location')) $('#footer-location').textContent = content.contact_location;
+        if (content.contact_instagram && $('#footer-instagram')) $('#footer-instagram').href = content.contact_instagram;
+        if (content.contact_linkedin && $('#footer-linkedin')) $('#footer-linkedin').href = content.contact_linkedin;
+        if (content.contact_github && $('#footer-github')) $('#footer-github').href = content.contact_github;
       }
     } catch (e) {
       console.warn('Content loader fallback:', e.message);
     }
   }
+
 
   async function loadEvents() {
     const container = $('#event-cards');

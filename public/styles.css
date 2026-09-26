@@ -36,8 +36,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;
 .cursor::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g)}
 .cursor.hover{width:48px;height:48px;background:rgba(0,255,102,.12);border-color:#8dffb5}
 
+/* announcement banner */
+.announcement-banner{background:linear-gradient(90deg, #021a0c, #053317, #021a0c);border-bottom:1px solid var(--line-bright);color:var(--g-soft);font-size:.78rem;padding:.45rem 1rem;text-align:center;position:relative;z-index:90;margin-top:var(--nav-h)}
+.announcement-banner__content{display:inline-flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:center}
+.announcement-banner__badge{background:var(--g);color:#020805;font-weight:700;font-size:.65rem;padding:2px 6px;border-radius:3px;letter-spacing:.05em}
+
 /* nav */
 .nav{position:fixed;inset:0 0 auto 0;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;
+
   padding:0 clamp(16px,3vw,40px);z-index:100;background:rgba(2,8,5,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .nav__logo img{display:block;height:56px;width:auto;-webkit-mask-image:radial-gradient(ellipse at center,#000 52%,transparent 76%);mask-image:radial-gradient(ellipse at center,#000 52%,transparent 76%)}
 .nav__links{display:flex;gap:clamp(14px,2.4vw,34px);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase}

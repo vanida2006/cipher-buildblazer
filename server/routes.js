@@ -14,6 +14,13 @@ const ROLES = ['SUPER_ADMIN', 'EVENT_MANAGER', 'CONTENT_MANAGER'];
 
 const api = express.Router();
 
+api.use((_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 /* ---------- helpers ---------- */
 const parseEvent = (r) => ({
   ...r,
@@ -207,15 +214,15 @@ admin.get('/activity-log', requireRole('SUPER_ADMIN'), (req, res) => {
 
 /* ---------- Event Management ---------- */
 const eventSchema = z.object({
-  title: z.string().min(1).max(160),
-  slug: z.string().max(160).optional(),
-  category: z.string().min(1).max(50),
+  title: z.string().min(1).max(200),
+  slug: z.string().max(200).optional(),
+  category: z.string().min(1).max(80),
   event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD'),
-  event_time: z.string().max(80).nullish(),
-  venue: z.string().max(140).nullish(),
-  reg_link: z.string().max(300).nullish().or(z.literal('')),
-  poster: z.string().max(400).nullish().or(z.literal('')),
-  summary: z.string().min(1).max(800),
+  event_time: z.string().max(100).nullish().or(z.literal('')),
+  venue: z.string().max(200).nullish().or(z.literal('')),
+  reg_link: z.string().max(2000).nullish().or(z.literal('')),
+  poster: z.string().max(5000).nullish().or(z.literal('')),
+  summary: z.string().min(1).max(2000),
   body: z.array(z.string()).default([]),
   gallery: z.array(z.object({ src: z.string(), caption: z.string().nullish() })).default([]),
   featured: z.boolean().default(true),
@@ -421,13 +428,13 @@ admin.get('/join-requests.csv', regAccess, (_req, res) => {
 
 /* ---------- Leadership / Members Management ---------- */
 const memberSchema = z.object({
-  name: z.string().min(1).max(80),
-  role: z.string().min(1).max(60),
-  image: z.string().max(300).nullish(),
-  github: z.string().nullish().or(z.literal('')),
-  linkedin: z.string().nullish().or(z.literal('')),
-  instagram: z.string().nullish().or(z.literal('')),
-  email: z.string().email().nullish().or(z.literal('')),
+  name: z.string().min(1).max(120),
+  role: z.string().min(1).max(100),
+  image: z.string().max(5000).nullish().or(z.literal('')),
+  github: z.string().max(500).nullish().or(z.literal('')),
+  linkedin: z.string().max(500).nullish().or(z.literal('')),
+  instagram: z.string().max(500).nullish().or(z.literal('')),
+  email: z.string().max(200).nullish().or(z.literal('')),
   active: z.boolean().default(true),
   sort_order: z.coerce.number().int().default(0),
 });
@@ -470,9 +477,9 @@ admin.delete('/leadership/:id', contentAccess, (req, res) => {
 
 /* ---------- Activities Management ---------- */
 const activitySchema = z.object({
-  title: z.string().min(1).max(140),
-  category: z.string().min(1).max(50).default('EVENTS'),
-  url: z.string().nullish().or(z.literal('')),
+  title: z.string().min(1).max(200),
+  category: z.string().min(1).max(80).default('EVENTS'),
+  url: z.string().max(1000).nullish().or(z.literal('')),
   sort_order: z.coerce.number().int().default(0),
 });
 
@@ -516,21 +523,23 @@ admin.get('/content', contentAccess, (_req, res) => {
   res.json(map);
 });
 
-admin.put('/content', contentAccess, validate(z.record(z.string(), z.string())), (req, res) => {
+admin.put('/content', contentAccess, validate(z.record(z.string(), z.any())), (req, res) => {
   const entries = Object.entries(req.body);
   const now = new Date().toISOString();
   for (const [k, v] of entries) {
+    const valStr = String(v ?? '');
     const exist = db.prepare('SELECT key FROM site_content WHERE key = ?').get(k);
     if (exist) {
-      db.prepare('UPDATE site_content SET value = ?, updated_at = ? WHERE key = ?').run(v, now, k);
+      db.prepare('UPDATE site_content SET value = ?, updated_at = ? WHERE key = ?').run(valStr, now, k);
     } else {
-      db.prepare('INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, ?)').run(k, v, now);
+      db.prepare('INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, ?)').run(k, valStr, now);
     }
   }
 
   logActivity(req.admin.u, 'content_updated', `Updated website content configurations (${entries.length} fields)`);
   res.json({ ok: true, message: 'Content updated successfully' });
 });
+
 
 /* ---------- Admin File / Image Upload ---------- */
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 10 } });
