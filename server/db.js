@@ -139,12 +139,28 @@ function logActivity(username, action_type, details) {
   }
 }
 
-// Auto-seed if the database is newly initialized
+// Auto-seed or update member roles if database is initialized
 try {
   const memberCount = db.prepare('SELECT COUNT(*) AS c FROM members').get().c;
   if (memberCount === 0) {
     const { seed } = require('../scripts/seed');
     seed(db);
+  } else {
+    // Update existing member roles if they are set to default 'Member'
+    const roleUpdates = [
+      ['Ruben Saldanha', 'Secretary'],
+      ['Himansh Ullal', 'Joint Secretary'],
+      ['Parthipan J', 'Faculty Advisor'],
+      ['Dr. Parthipan J', 'Faculty Advisor'],
+      ['Chaitra RM', 'Faculty Coordinator'],
+      ['Ms. Chaitra RM', 'Faculty Coordinator'],
+      ['Shamitha KV', 'Faculty Coordinator'],
+      ['Ms. Shamitha KV', 'Faculty Coordinator']
+    ];
+    const stmt = db.prepare('UPDATE members SET role = ? WHERE (name = ? OR name LIKE ?) AND role = ?');
+    for (const [n, r] of roleUpdates) {
+      stmt.run(r, n, `%${n.replace(/^(Dr\.|Ms\.)\s*/, '')}%`, 'Member');
+    }
   }
 
   const adminCount = db.prepare('SELECT COUNT(*) AS c FROM admins').get().c;

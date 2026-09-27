@@ -23,11 +23,11 @@ function seed(database) {
     ['Raynell Lewis', 'Vice President', 'raynell-lewis'],
     ['Nazmin Ziya', 'Treasurer', 'nazmin-ziya'],
     ['Jeslin Ninora', 'Joint Treasurer', 'jeslin-ninora'],
-    ['Ruben Saldanha', 'Member', 'ruben-saldana'],
-    ['Himansh Ullal', 'Member', 'himansh-ullal'],
-    ['Parthipan J', 'Member', 'parthipan-j'],
-    ['Chaitra RM', 'Member', 'chaitra-rm'],
-    ['Shamitha KV', 'Member', 'shamitha-kv'],
+    ['Ruben Saldanha', 'Secretary', 'ruben-saldana'],
+    ['Himansh Ullal', 'Joint Secretary', 'himansh-ullal'],
+    ['Dr. Parthipan J', 'Faculty Advisor', 'parthipan-j'],
+    ['Ms. Chaitra RM', 'Faculty Coordinator', 'chaitra-rm'],
+    ['Ms. Shamitha KV', 'Faculty Coordinator', 'shamitha-kv'],
   ];
   const addM = db.prepare('INSERT INTO members (name,role,image,sort_order) VALUES (?,?,?,?)');
   members.forEach(([n, r, img], i) => addM.run(n, r, `/img/team/${img}.jpg`, i));

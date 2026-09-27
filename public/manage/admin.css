@@ -88,7 +88,7 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
   position: fixed;
   top: 0.75rem;
   left: 0.75rem;
-  z-index: 120;
+  z-index: 1000;
   width: 42px;
   height: 42px;
   border-radius: var(--radius-sm);
@@ -99,7 +99,8 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
   align-items: center;
   justify-content: center;
   transition: all 0.25s ease;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 14px rgba(0,0,0,0.7);
+  touch-action: manipulation;
 }
 .hamburger-btn:hover {
   border-color: var(--g);
@@ -113,9 +114,10 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 49;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
+  z-index: 998;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -152,16 +154,16 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
     position: fixed !important;
     top: 0;
     left: 0;
-    width: 270px;
+    width: 280px;
     height: 100vh;
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
+    z-index: 999;
     box-shadow: none;
   }
   .admin-sidebar.open {
     transform: translateX(0) !important;
-    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
+    box-shadow: 6px 0 35px rgba(0, 0, 0, 0.8);
   }
 
   .sidebar-backdrop {
@@ -169,17 +171,28 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
   }
 
   .admin-main {
-    padding-top: 3.8rem;  /* room for hamburger btn */
+    padding-top: 1.2rem;
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
   }
 
-  /* Stack topbar vertically on mobile */
+  /* Prevent title overlap with fixed hamburger button */
   .admin-topbar {
     flex-direction: column;
     align-items: flex-start;
+    padding-left: 3.4rem;
+    min-height: 44px;
   }
 
   .page-heading-group h1 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
+    word-break: break-word;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    margin-top: 0.4rem;
+    gap: 0.5rem;
   }
 
   /* Ensure stats fit on small screens */
@@ -197,14 +210,25 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--white); }
     padding: 1rem;
   }
 
-  /* Make panel cards full-width */
+  /* Make panel cards full-width and allow touch table scrolling */
   .panel-card {
-    padding: 1rem;
+    padding: 0.85rem;
+    overflow: visible;
   }
 
-  /* Toolbar wrapping */
-  .toolbar {
-    flex-wrap: wrap;
+  /* Toolbar wrapping for filters and search */
+  .toolbar-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .search-input-wrap {
+    max-width: 100%;
+    width: 100%;
+  }
+  .toolbar-bar select,
+  .toolbar-bar .btn {
+    width: 100%;
   }
 }
 
@@ -724,21 +748,26 @@ textarea {
 
 /* ---------------- Table & List View ---------------- */
 .table-container {
-  overflow-x: auto;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--bg-card-solid);
+  width: 100%;
+  position: relative;
 }
 
 table {
   width: 100%;
+  min-width: 660px;
   border-collapse: collapse;
   font-size: .84rem;
   text-align: left;
 }
 
 th {
-  background: rgba(0, 255, 102, 0.06);
+  background: rgba(0, 255, 102, 0.08);
   color: var(--g-dim);
   font-weight: 600;
   text-transform: uppercase;
@@ -746,6 +775,7 @@ th {
   letter-spacing: .1em;
   padding: .85rem .9rem;
   border-bottom: 1px solid var(--line);
+  white-space: nowrap;
 }
 
 td {
@@ -753,6 +783,24 @@ td {
   border-bottom: 1px solid var(--line-dim);
   color: var(--text);
   vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .table-container th,
+  .table-container td {
+    padding: 0.65rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Make action column sticky on mobile so buttons are always accessible */
+  .table-container th:last-child,
+  .table-container td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--bg-card-solid);
+    box-shadow: -6px 0 12px rgba(0, 0, 0, 0.75);
+    z-index: 3;
+  }
 }
 
 tr:last-child td { border-bottom: none; }
